@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PetSaathi - Pet Owner Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007f80",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#0f2323",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="flex flex-col h-screen max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl overflow-hidden relative">
+<!-- Top App Bar -->
+<header class="flex items-center justify-between px-6 py-4 bg-white dark:bg-slate-900 border-b border-primary/10 sticky top-0 z-10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl">menu</span>
+<h1 class="text-xl font-bold tracking-tight text-primary">PetSaathi</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="relative p-1">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">notifications</span>
+<span class="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-red-500"></span>
+</button>
+<div class="size-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Owner profile picture smiling male" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfCJqVT01qrx3E_3zJdd8z4_uc0mk5ugI6m1B3gOJZ_bx9Qlvmaa-t0WZ70cnGKo3NhpOq7EgcpU1pNIdbeDNBqsJYhr6OcJ7ToWOSa2Ny-Qs-n1Qprl1RbmruV4WhDr2FNuEv9peToA5oTC8KsULNSo_9p-3qyWcUx2JeAOny3U8_8lfI2dyrfmAynLmD6o2bwUiu_MdN--cB8XDn-43zXAX-ZWlNHuHeKAPrMaXvSpal6wnbRnbjNiwWRH-F2zSOgvmCinPNZQ"/>
+</div>
+</div>
+</header>
+<!-- Search Bar Container -->
+<div class="px-6 py-4 bg-white dark:bg-slate-900">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">search</span>
+<input class="w-full bg-background-light dark:bg-background-dark border-none rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-primary/50 text-slate-900 dark:text-slate-100 placeholder:text-slate-400" placeholder="Find walkers near you..." type="text"/>
+</div>
+</div>
+<!-- Main Content Area (Scrollable) -->
+<main class="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+<div class="flex items-center justify-between">
+<h2 class="text-lg font-bold">Top Caregivers</h2>
+<button class="text-primary text-sm font-semibold">See all</button>
+</div>
+<!-- ListView of Caregiver Cards -->
+<div class="space-y-4">
+<!-- Card 1 -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary/5 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex gap-4">
+<div class="size-16 rounded-full overflow-hidden border-2 border-primary/20 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Professional dog walker female profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6QtChGv6-Bh1_c5Q8RCqwrVbTF9X-72nxgZ1lNC7RCF9NJ6KWIJLQoIhLHDgB-GSRouArqjLmaLKgXFhECwlqFMYhblzwyfm0dgo0-vU_lMeMpnkaf4gKSDRjkMsdI9NAkVGulthSQOvyDOh-3pVmC5EnFBRxjQZ5nDvtcTls-9lUv1LyRINNs5vsU1V0OiIEi6C2S5zNJwa-CNky5hyiMSjHunMLDknV6jtzCZYAoXA2FxYma_4qvIR82H3XpilUIY3rStfzxw"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Aarav Sharma</h3>
+<div class="flex items-center gap-1 text-xs font-medium text-amber-500 mt-0.5">
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span>4.9 (120 reviews)</span>
+</div>
+</div>
+<span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Top Rated</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Prefers: Golden Retrievers, Labradors, Beagles</p>
+</div>
+</div>
+<div class="mt-4 flex gap-2">
+<button class="flex-1 bg-primary text-white font-bold py-2 rounded-lg text-sm hover:bg-primary/90 transition-colors">Book Now</button>
+<button class="px-3 border border-primary/20 text-primary rounded-lg hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-xl align-middle">chat_bubble</span>
+</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary/5 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex gap-4">
+<div class="size-16 rounded-full overflow-hidden border-2 border-primary/20 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Smiling male dog sitter profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9bGNhf32NvvgxMyo4EykftbLs6OX1_L4fW4u7M-nyOHtIJEpu-le6liWXMHaN3H-Ed8LAZN1IvnPuB_G320HphA4AkXTlO8k8asOpwa06GRcU-MAVOTgciAdO9aEnYz85pIPDvziQ0mt9D3vNcxfTiKeDlgl116CxcsalHbZFAMYkfB1BKYPftBQiXV2WYI6kq2AhSw_cmxKsNyfiNPchjH-s1X2d60dz3OCO6g0jGCGoAl0KiNhXPLfLCujEvev9at_LBgHjWw"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Vikram Malhotra</h3>
+<div class="flex items-center gap-1 text-xs font-medium text-amber-500 mt-0.5">
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span>4.7 (85 reviews)</span>
+</div>
+</div>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Prefers: Pugs, French Bulldogs, Shi Tzus</p>
+</div>
+</div>
+<div class="mt-4 flex gap-2">
+<button class="flex-1 bg-primary text-white font-bold py-2 rounded-lg text-sm hover:bg-primary/90 transition-colors">Book Now</button>
+<button class="px-3 border border-primary/20 text-primary rounded-lg hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-xl align-middle">chat_bubble</span>
+</button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary/5 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex gap-4">
+<div class="size-16 rounded-full overflow-hidden border-2 border-primary/20 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Female pet caregiver profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBR7sSfy28O5tIujJhoDzl9V6tihDVZnBBgMZGwm8VdJu4aGswqbPF5Nu9-tD6WtRi1ylIZ9gmNHwBG11qKDv8kU1yEJJUdTwEuPHBwXI08S0xeZ69fBw3Ye-j561dy9OPNXDpVC8fTgZs8QqX980pNh8Ym9YVTeUeJGNNXw3yTIlBVYJQcoJaWFRoBiLaI29f68CqQCMZ0i1Pip0sd1JCShOZ84vcdOu_gzG3suP_iGMgBJNEibwjc7uJZzy8w_mHLOYMHR8JeXQ"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Priya Das</h3>
+<div class="flex items-center gap-1 text-xs font-medium text-amber-500 mt-0.5">
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span>5.0 (42 reviews)</span>
+</div>
+</div>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Prefers: German Shepherds, Huskies</p>
+</div>
+</div>
+<div class="mt-4 flex gap-2">
+<button class="flex-1 bg-primary text-white font-bold py-2 rounded-lg text-sm hover:bg-primary/90 transition-colors">Book Now</button>
+<button class="px-3 border border-primary/20 text-primary rounded-lg hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-xl align-middle">chat_bubble</span>
+</button>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary/5 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex gap-4">
+<div class="size-16 rounded-full overflow-hidden border-2 border-primary/20 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Male dog walker profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDp4zAzMvXGyVWBTKBOkXP90_9cf6WUJD3GXTfDZuSrtvyuqblSBzFdhCpVTg5fQCb7FjXClPZYIqtphrUyayPriWlMO-tmho4Hx2AoFbh9nWH0VypezscA_111tMy4_zcUEQ_w8UrgfQ3PLsqj8mqv8PLgkpCnvwhm4B8tEBNurJS09AHCXXomWWjxUS1GDbTovihmBDWqPFc3sNP9Wd0LX71RZ9Kf-IVaPcXfyoXSE2yl5Ce8Z5ZMg8bp7vVg1QnailzSAFVoGw"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Rohan Verma</h3>
+<div class="flex items-center gap-1 text-xs font-medium text-amber-500 mt-0.5">
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span>4.8 (104 reviews)</span>
+</div>
+</div>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Prefers: All breeds</p>
+</div>
+</div>
+<div class="mt-4 flex gap-2">
+<button class="flex-1 bg-primary text-white font-bold py-2 rounded-lg text-sm hover:bg-primary/90 transition-colors">Book Now</button>
+<button class="px-3 border border-primary/20 text-primary rounded-lg hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-xl align-middle">chat_bubble</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="bg-white dark:bg-slate-900 border-t border-primary/10 px-4 pb-4 pt-2">
+<div class="flex justify-around items-center">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-1">home</span>
+<span class="text-[10px] font-bold">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="text-[10px] font-medium">Bookings</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">forum</span>
+<span class="text-[10px] font-medium">Chat</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>
