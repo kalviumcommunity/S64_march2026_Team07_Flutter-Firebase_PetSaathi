@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007f80",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#0f2323",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>PetSaathi - Login</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden">
+<!-- TopAppBar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between">
+<div class="text-primary flex size-12 shrink-0 items-center justify-center">
+<span class="material-symbols-outlined text-4xl" data-icon="pets">pets</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">PetSaathi</h2>
+</div>
+<div class="flex-1 flex flex-col justify-center px-6 py-8">
+<div class="@container max-w-[480px] mx-auto w-full">
+<!-- Hero Image / Illustration Placeholder -->
+<div class="@[480px]:px-0 @[480px]:py-3 mb-6">
+<div class="w-full bg-center bg-no-repeat bg-cover flex flex-col justify-end overflow-hidden bg-primary/10 @[480px]:rounded-xl min-h-[200px]" data-alt="Happy dog and cat sitting together smiling" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA7U4c_q-E2S5UF5tQdZ8Nht5d1oYswXWZmEy0tzthdAv5LhBhHGwtDxuzqYmtM9oNxppYNdJ-NtoNdmz7scIemGvl98T8v4MDj9vgun_FTNeSCtJUF1vtwAGu9mY1ZBK2JPamU7nKUj9kehDgL9TGHgrgt5Gkd8IGDW6XrsEcySTwR4ckP2-d6LMKoVDE5Yv37LXNHqo08hQSQYz9fK6HsV20fFwoKkAof0pGLc_IkebFXRySDfMlpLBY6URGyMJVr1hsjwVp7HQ");'>
+</div>
+</div>
+<div class="text-center mb-8">
+<h2 class="text-slate-900 dark:text-slate-100 tracking-tight text-[32px] font-bold leading-tight pb-2">Welcome Back</h2>
+<p class="text-slate-600 dark:text-slate-400 text-base font-normal leading-normal">Log in to your PetSaathi account to continue caring for your furry friends</p>
+</div>
+<form class="space-y-5">
+<!-- Email Field -->
+<div class="flex flex-col w-full">
+<label class="text-slate-800 dark:text-slate-200 text-sm font-semibold leading-normal pb-2 ml-1">Email Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/60">mail</span>
+<input class="form-input flex w-full rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-primary/20 bg-white dark:bg-slate-800 h-14 placeholder:text-slate-400 pl-12 pr-4 text-base font-normal" placeholder="name@example.com" type="email"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="flex flex-col w-full">
+<div class="flex justify-between items-center pb-2 ml-1">
+<label class="text-slate-800 dark:text-slate-200 text-sm font-semibold leading-normal">Password</label>
+<a class="text-primary text-sm font-medium hover:underline" href="#">Forgot password?</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/60">lock</span>
+<input class="form-input flex w-full rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-primary/20 bg-white dark:bg-slate-800 h-14 placeholder:text-slate-400 pl-12 pr-12 text-base font-normal" placeholder="Enter your password" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" type="button">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+</div>
+<!-- Login Button -->
+<div class="pt-4">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+<span>Log In</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</form>
+<!-- Divider -->
+<div class="relative my-8">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-primary/10"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="px-4 bg-background-light dark:bg-background-dark text-slate-500">Or continue with</span>
+</div>
+</div>
+<!-- Social Login -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 h-12 rounded-xl border border-primary/20 bg-white dark:bg-slate-800 hover:bg-primary/5 transition-colors">
+<img alt="" class="w-5 h-5" data-alt="Google logo icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT6MGRVRJSIl7s_D5xDXGKujRdPbeneJEDTz3fhfv_q1gktiUKvUv9YefQx6Grm-xZOYZDci_jObI2nbeSjHXG220ES66STPCH5HdIc2_1Prw2BgYT_S5T11CHuiqsiS-m6OTqjddV1k2DJBAc3W9B8ZBD9BfhJrlZU2qgVgzg_6YLB7voOdnS2F1Ft9lT4bNeCdDS096Wa2B2h3IASF8XM9qISujrdzdvH4h_cBA7pfyikiD6fndo0Uek_z2hZqYjIik3sSy57Q"/>
+<span class="text-sm font-semibold">Google</span>
+</button>
+<button class="flex items-center justify-center gap-2 h-12 rounded-xl border border-primary/20 bg-white dark:bg-slate-800 hover:bg-primary/5 transition-colors">
+<img alt="" class="w-5 h-5" data-alt="Facebook logo icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLCe2IMcqZLJPHTCx21wIgxCyPonY2vCYumoBPV-dZr8ygPmMkd2da21yjXzOOHIUoe1W4lGRNpUfVfvP4JLHBxARZi5UxXZiYanTvHOyI7dvC_WuiZ-luoKuEeZTpAxTUPuC4iYQ5vlr4xvKNUp96sPhtXoI9fKO8C3lfiNKGQN6hhXrSfGX5-6G7T7k6Gp542fXFgSHSF6wo3dL4Z9ODPUpJIbUMQODKOnINMNd9-RkkriQAvCl9Lzuu6ccFF_qjOZIjnb_OAA"/>
+<span class="text-sm font-semibold">Facebook</span>
+</button>
+</div>
+<!-- Footer Link -->
+<div class="mt-10 text-center">
+<p class="text-slate-600 dark:text-slate-400">
+                        Don't have an account? 
+                        <a class="text-primary font-bold hover:underline ml-1" href="#">Create account</a>
+</p>
+</div>
+</div>
+</div>
+<!-- Decorative Bottom Element -->
+<div class="h-2 bg-primary w-full opacity-20"></div>
+</div>
+</body></html>

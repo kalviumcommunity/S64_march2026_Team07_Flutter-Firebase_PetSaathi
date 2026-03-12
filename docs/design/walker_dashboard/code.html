@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PetSaathi Walker Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#007f80",
+                "background-light": "#f5f8f8",
+                "background-dark": "#0f2323",
+              },
+              fontFamily: {
+                "display": ["Plus Jakarta Sans"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- AppBar -->
+<header class="sticky top-0 z-50 flex items-center bg-white dark:bg-background-dark border-b border-primary/10 p-4 justify-between shadow-sm">
+<div class="flex items-center gap-3">
+<div class="text-primary flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+<span class="material-symbols-outlined">menu</span>
+</div>
+<h1 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight">Walker Dashboard</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="relative flex size-10 items-center justify-center rounded-full hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-slate-700 dark:text-slate-300">notifications</span>
+<span class="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-red-500"></span>
+</button>
+<div class="size-10 rounded-full bg-primary/20 border-2 border-primary/10 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Profile picture of the pet walker" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzPT-mEDFaJz_V4ypazvtwxExgWixTe-3BKF_9nyr9m7KAIfE-COFXEdhUhOqIrIydBMP4-DrEC-khpEd7N84aEGG-HvIw_ZzY-gbOucJOONeKTc5mcAAUQ22N0NAKW6VxXaJoo-qUlqf-zQ0crrSJkqeYti2H_5Rjr_F3MrwacWONmcC8j3oTNfBkz4kqsfTy7pUSR1WJkVePOunMUjBCDiVLiowI2a0OLR8hrbZW4Bto2BwgCOTPNEibRVQsa7E2GM0XxAZHEg"/>
+</div>
+</div>
+</header>
+<main class="flex-1 pb-24">
+<!-- Stats Summary -->
+<section class="px-4 pt-6 pb-2 grid grid-cols-2 gap-4">
+<div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-primary/5">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">Earnings Today</p>
+<p class="text-primary text-2xl font-bold mt-1">$124.50</p>
+</div>
+<div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-primary/5">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">Walks Left</p>
+<p class="text-primary text-2xl font-bold mt-1">4</p>
+</div>
+</section>
+<!-- Upcoming Bookings Header -->
+<div class="flex items-center justify-between px-4 pb-3 pt-6">
+<h2 class="text-slate-900 dark:text-slate-100 text-[20px] font-bold leading-tight">Booking Requests</h2>
+<button class="text-primary text-sm font-semibold hover:underline">View All</button>
+</div>
+<!-- Booking Cards -->
+<div class="px-4 space-y-4">
+<!-- Card 1 -->
+<div class="flex flex-col gap-4 rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm border border-primary/5">
+<div class="flex items-start gap-4">
+<div class="size-20 bg-primary/5 rounded-lg overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Golden Retriever dog sitting in a park" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYTZcAXKzFRRMVYIK0sGGz8nF0VVIPZc2aUtmMYfEjzAxMq3vBhZUDGPcfGjK8l18hJevMWw2bxcODcMkjXhsh-3CPRu83TDDtAAL9okw7z-hsqpMYlzUPWkkvGym0vmyZ_TipCuVmwD361K00CX38nMJGl4yE2KmDtwPeRtla9uYaCYwzg9QhVlG2z7cDdhQiaztKpwHBhMVvubFwsseONw26-2bR3xO4TUQE92JFAfld_8HKKbPrrgVOHhh_WfEhW5rMXLk5cg"/>
+</div>
+<div class="flex flex-col flex-1 gap-1">
+<div class="flex items-center justify-between">
+<p class="text-primary text-sm font-semibold tracking-wide">TODAY, 10:00 AM</p>
+<span class="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">New</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight">Buddy</p>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-sm">pets</span>
+<span>Golden Retriever</span>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>Upper East Side, 2km away</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 flex items-center justify-center gap-2 rounded-lg h-11 bg-primary text-white text-sm font-bold tracking-wide shadow-md shadow-primary/20 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+                            Accept
+                        </button>
+<button class="flex-1 flex items-center justify-center gap-2 rounded-lg h-11 bg-primary/10 text-primary text-sm font-bold tracking-wide hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">cancel</span>
+                            Reject
+                        </button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="flex flex-col gap-4 rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm border border-primary/5">
+<div class="flex items-start gap-4">
+<div class="size-20 bg-primary/5 rounded-lg overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Beagle dog looking curious at the camera" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwxKVOQ4XNA6XLmui-bgSE7WK-ubYrvvZvTjeSeRnFUAAThCBy2KDoSe3y7IhX_75DnJoPOxU3BkE9da6w_1DdyJvEkAjj5IMdMdKPAO9PDu8PF3cd8RUOqCLfZ_GHe6di45Rm8KbI4gBA0WK838pWt6Ky1u7XKDV-oJrtUNb2FkkvS14P_my3vRZd9XZpCISMw58i9Q49iiIyboLMnULmUWIQy0nMr9zZuv9G5BKxvpECA-TqgobPfBSDjO2NvQ_Y_gU50W2BsQ"/>
+</div>
+<div class="flex flex-col flex-1 gap-1">
+<div class="flex items-center justify-between">
+<p class="text-primary text-sm font-semibold tracking-wide">TODAY, 2:30 PM</p>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight">Cooper</p>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-sm">pets</span>
+<span>Beagle</span>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>Downtown, 4.5km away</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 flex items-center justify-center gap-2 rounded-lg h-11 bg-primary text-white text-sm font-bold tracking-wide shadow-md shadow-primary/20 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+                            Accept
+                        </button>
+<button class="flex-1 flex items-center justify-center gap-2 rounded-lg h-11 bg-primary/10 text-primary text-sm font-bold tracking-wide hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">cancel</span>
+                            Reject
+                        </button>
+</div>
+</div>
+<!-- Active Map Context -->
+<div class="bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm border border-primary/5">
+<div class="h-40 relative">
+<div class="absolute inset-0 bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-4xl">map</span>
+</div>
+<img class="w-full h-full object-cover" data-alt="Simplified city map showing pet locations" data-location="Manhattan" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVR2JmTvrsaU9n6bqiHCV0pOxj54Id8AmsNz1ur9Gvotyc-xqFoX_NKvdxwFEshvCD63Wd6zSM8tizWmwUDQ3QzzTxMKQUBL-3ZixpqIQllZgw5MpZ_4MlKJfkGrIq6DSQRhX3fljIQ-3DhddbgWcm_pc87M24qB7IUDG3xKOR0WwOurbdawX2-Bb7OLDpBwMJJRPCsVfFQt4RaJqo01BlKE8Q0o7kKJxvmZfjx9keBsp6GpJGVYWRgKGC0SJPHx_NEuO_eBWzjQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-3 left-3 flex items-center gap-2 text-white">
+<span class="material-symbols-outlined">near_me</span>
+<span class="text-xs font-bold uppercase">Pet Activity in your area</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 flex items-center border-t border-primary/10 bg-white dark:bg-slate-900 px-4 pb-6 pt-3 shadow-lg">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined filled">home</span>
+<p class="text-[10px] font-bold uppercase tracking-widest">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<p class="text-[10px] font-bold uppercase tracking-widest">Schedule</p>
+</a>
+<div class="relative -top-8 flex-none flex items-center justify-center">
+<button class="flex size-14 items-center justify-center rounded-full bg-primary text-white shadow-xl shadow-primary/30 border-4 border-white dark:border-slate-900">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<p class="text-[10px] font-bold uppercase tracking-widest">Earnings</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<p class="text-[10px] font-bold uppercase tracking-widest">Profile</p>
+</a>
+</nav>
+</div>
+</body></html>
