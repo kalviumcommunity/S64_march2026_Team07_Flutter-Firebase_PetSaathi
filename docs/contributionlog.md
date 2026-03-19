@@ -71,6 +71,23 @@ The implementation highlights the importance of controlled state updates. Misusi
 The key takeaway is that state drives interaction. Proper use of `StatefulWidget` and `setState()` forms the foundation for building responsive, real-time applications in Flutter.
 
 
+### 3.24 Managing Assets in Flutter
+
+This task focuses on integrating and managing static resources within a Flutter application. Assets such as images and icons enhance visual quality and contribute to a more polished user interface.
+
+Local assets were organized into a structured directory, separating images and icons for clarity and scalability. These resources were registered inside `pubspec.yaml`, enabling Flutter to bundle them during the build process and make them accessible within the app.
+
+Images were rendered using `Image.asset`, allowing precise control over size, fit, and placement. Background images were applied using `BoxDecoration`, demonstrating how assets can be embedded into layouts beyond simple display. Built-in Material and Cupertino icons were used to complement visuals and maintain platform consistency.
+
+Combining images and icons within a single screen improved visual hierarchy and user experience. This approach highlights how static resources can be structured and reused effectively across different parts of the application.
+
+A critical aspect of this task was maintaining accuracy in asset paths and YAML configuration. Even minor inconsistencies in file structure or indentation can break asset loading. Ensuring proper registration and organization prevents runtime errors and simplifies long-term maintenance.
+
+The outcome reinforces that asset management is not just about adding files — it is about structuring resources in a way that supports scalability, readability, and consistent UI development across the project.
+
+
+
+
 
 
 
