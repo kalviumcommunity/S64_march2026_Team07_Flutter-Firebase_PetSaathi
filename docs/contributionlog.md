@@ -103,6 +103,24 @@ A key realization is that CLI-based integration enforces consistency and signifi
 
 
 
+### 3.30 Persistent User Sessions with Firebase Auth
+
+This task implements automatic session handling using Firebase Authentication, ensuring users remain logged in across app restarts without manual state management.
+
+The core logic relies on `authStateChanges()`, which continuously listens to authentication state updates. This stream-driven approach allows the app to react instantly to login and logout events, removing the need for explicit navigation control.
+
+A `StreamBuilder` was used at the root level to decide the initial screen. If a valid user session exists, the app directly loads the home screen. If not, it routes to the authentication screen. During the session check, a loading state prevents incorrect UI rendering.
+
+Firebase internally persists authentication tokens, enabling seamless auto-login. After a successful login, closing and reopening the app restores the session automatically, maintaining continuity without additional storage mechanisms.
+
+Logout is handled by calling `signOut()`, which clears the session and immediately triggers a UI update through the same stream. This ensures consistent behavior, where the user is redirected back to the authentication screen and no residual session remains.
+
+This implementation highlights how reactive state handling simplifies session management. Instead of manually tracking authentication, the system responds to real-time state changes, reducing complexity and potential bugs.
+
+The key outcome is a stable and predictable authentication flow, where session persistence enhances user experience by eliminating repeated logins while maintaining secure and controlled access.
+
+
+
 
 
 
