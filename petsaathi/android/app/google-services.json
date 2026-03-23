@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "68518491256",
+    "project_id": "petsatthi",
+    "storage_bucket": "petsatthi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:68518491256:android:12a033e25b966c428a298d",
+        "android_client_info": {
+          "package_name": "com.example.petsaathi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyv_A89xgBFJ0I0jxtgqr7e2WZzeLwOAM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
