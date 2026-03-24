@@ -54,3 +54,26 @@ hardik - 3.30
 ishita - 3.31
 saanvi- 3.29
 
+**tuesday  24 march**
+
+hardik - 3.32
+ishita - 3.33
+saanvi- 3.34
+
+**wednesday 25 march**
+
+hardik - 3.35
+ishita - 3.36
+saanvi- 3.37
+
+**thursady  26 march**
+
+hardik - 3.38
+ishita - 3.39
+saanvi- 3.40
+
+**friday 27 march**
+
+hardik - 3.38
+ishita - 3.39
+saanvi- 3.40
