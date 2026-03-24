@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'screens/login_screen.dart';
-// import 'screens/signup_screen.dart';
+import 'screens/landing_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,24 +16,38 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // Root widget of the PetSaathi application
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'PetSaathi',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Theme configuration for the PetSaathi app
-        // This controls colors, typography, and visual styling
-        // across the entire application.
-        //
-        // TRY THIS: Change the seedColor to Colors.teal or Colors.green
-        // and perform hot reload to see the theme update instantly.
-        //
-        // Flutter’s hot reload allows UI updates without restarting
-        // the entire application, which helps speed up development.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        // Rapido style theme (Yellow/black/white)
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFF9C80E), // A vibrant yellow
+          primary: const Color(0xFFF9C80E),
+          secondary: Colors.black87,
+        ),
+        scaffoldBackgroundColor: Colors.grey[50],
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFF9C80E),
+          foregroundColor: Colors.black87,
+          elevation: 0,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFF9C80E),
+            foregroundColor: Colors.black87,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ),
       ),
-      home: LoginScreen(),
+      home: const LandingScreen(),
     );
   }
 }
