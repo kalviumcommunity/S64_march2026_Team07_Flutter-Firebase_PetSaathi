@@ -175,13 +175,13 @@ Not included in MVP:
 Clone the repository:
 
 ```
-git clone https://github.com/your-repo/pet-saathi.git
+git clone https://github.com/kalviumcommunity/S64_march2026_Team07_Flutter-Firebase_PetSaathi.git
 ```
 
 Navigate to the project:
 
 ```
-cd pet-saathi
+cd petsaathi
 ```
 
 Install dependencies:
