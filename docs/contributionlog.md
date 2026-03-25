@@ -141,3 +141,22 @@ A key challenge was handling asynchronous data safely while maintaining a smooth
 The final outcome is a responsive, data-driven interface where Firestore acts as a live source of truth, and the UI reacts instantly to every change. 
 
 
+### 3.35 Firestore Querying, Filtering & Sorting
+
+This task focuses on retrieving only the required data from Firestore using structured queries. Instead of loading entire collections, filters and ordering were applied to fetch precise and optimized results.
+
+Queries were built using `where()` to filter documents based on conditions such as status, priority, or specific fields. This ensured that only relevant data was fetched, reducing unnecessary reads and improving performance.
+
+Sorting was handled using `orderBy()`, allowing data to be displayed in a defined sequence, such as ascending priority or latest timestamps. Combining filtering and ordering created a controlled data flow where the UI reflects meaningful and organized information.
+
+Real-time updates were maintained using `snapshots()` with `StreamBuilder`, ensuring that any changes in Firestore immediately update the UI. This keeps the interface consistent with backend data without manual refresh.
+
+Limiting results using `limit()` was applied to control data load, especially useful for large datasets and improving rendering efficiency.
+
+A key challenge was handling Firestore indexing requirements when combining filters and sorting. Resolving this required creating proper indexes to support compound queries without runtime errors.
+
+The outcome is a more efficient and scalable data retrieval system where the UI displays only relevant, sorted, and structured data, improving both performance and user experience.
+
+
+
+
