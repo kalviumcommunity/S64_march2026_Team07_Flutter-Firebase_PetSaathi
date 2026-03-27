@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class FirestoreService {
   final CollectionReference notes =
@@ -30,9 +31,9 @@ class FirestoreService {
       'text': text,
       'timestamp': Timestamp.now(),
     });
-    print("Note added ✅");
+    debugPrint('Note added');
   } catch (e) {
-    print("Error ❌: $e");
+    debugPrint('Error: $e');
   }
 }
   

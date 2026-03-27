@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_widgets.dart';
 import 'owner_dashboard.dart';
 import 'walker_dashboard.dart';
 import 'login_screen.dart';
@@ -9,7 +11,7 @@ class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key, required this.role});
 
   @override
-  _SignupScreenState createState() => _SignupScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
 class _SignupScreenState extends State<SignupScreen> {
@@ -17,12 +19,30 @@ class _SignupScreenState extends State<SignupScreen> {
   final passwordController = TextEditingController();
   final AuthService _auth = AuthService();
   bool isLoading = false;
+  bool obscurePassword = true;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   void handleSignup() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Use a valid email and a password of at least 6 characters.')),
+      );
+      return;
+    }
+
     setState(() => isLoading = true);
     final user = await _auth.signUp(
-      emailController.text.trim(),
-      passwordController.text.trim(),
+      email,
+      password,
       widget.role,
     );
 
@@ -44,7 +64,7 @@ class _SignupScreenState extends State<SignupScreen> {
       if (mounted) {
         setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Signup Failed ❌")),
+          const SnackBar(content: Text('Signup failed. Please try again.')),
         );
       }
     }
@@ -55,45 +75,70 @@ class _SignupScreenState extends State<SignupScreen> {
     String roleText = widget.role == 'owner' ? 'Pet Owner' : 'Dog Walker';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Sign Up as $roleText"),
-      ),
-      body: Center(
+      appBar: AppBar(title: Text('Register as $roleText')),
+      body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.person_add_alt_1, size: 80, color: Colors.black87),
-              const SizedBox(height: 32),
+              const SizedBox(height: 12),
+              Container(
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Icon(Icons.person_add_alt_1_rounded, size: 56),
+              ),
+              const SizedBox(height: 22),
+              Text(
+                'Create your account',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Register as $roleText and start using PetSaathi today.',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: AppColors.textMuted,
+                    ),
+              ),
+              const SizedBox(height: 20),
               TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
+                  hintText: 'Email address',
+                  prefixIcon: Icon(Icons.email_outlined),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               TextField(
                 controller: passwordController,
-                decoration: const InputDecoration(
-                  labelText: "Password",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 32),
-              isLoading 
-                ? const Center(child: CircularProgressIndicator())
-                : ElevatedButton(
-                    onPressed: handleSignup,
-                    child: const Text("Sign Up"),
+                obscureText: obscurePassword,
+                decoration: InputDecoration(
+                  hintText: 'Password (min 6 chars)',
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    onPressed: () => setState(() => obscurePassword = !obscurePassword),
+                    icon: Icon(
+                      obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    ),
                   ),
-              const SizedBox(height: 16),
+                ),
+              ),
+              const SizedBox(height: 20),
+              if (isLoading)
+                const Center(child: CircularProgressIndicator())
+              else
+                GradientActionButton(
+                  label: 'Register',
+                  onPressed: handleSignup,
+                ),
+              const SizedBox(height: 10),
               TextButton(
                 onPressed: () {
                   Navigator.pushReplacement(
@@ -104,10 +149,13 @@ class _SignupScreenState extends State<SignupScreen> {
                   );
                 },
                 child: Text(
-                  "Already have an account? Login as $roleText",
-                  style: const TextStyle(color: Colors.black87),
+                  'Already registered? Log in as $roleText',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
-              )
+              ),
             ],
           ),
         ),
