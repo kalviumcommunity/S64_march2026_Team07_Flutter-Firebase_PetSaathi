@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_widgets.dart';
 import 'signup_screen.dart';
@@ -17,8 +18,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final AuthService _auth = AuthService();
-  bool isLoading = false;
   bool obscurePassword = true;
 
   @override
@@ -31,6 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void handleLogin() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
+    final auth = context.read<AuthProvider>();
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -39,21 +39,15 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() => isLoading = true);
-    final user = await _auth.login(
+    final success = await auth.login(
       email,
       password,
     );
 
     if (!mounted) return;
 
-    if (user != null) {
-      // Get role from Firestore
-      String? actualRole = await _auth.getUserRole(user.uid);
-      if (!mounted) return;
-      String userRole = actualRole ?? widget.role;
-
-      if (userRole == 'owner') {
+    if (success && auth.user != null) {
+      if (auth.user?.role == 'owner') {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const OwnerDashboard()),
@@ -67,15 +61,17 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } else {
-      setState(() => isLoading = false);
+      final error = auth.errorMessage ?? 'Login failed. Please check your credentials.';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login failed. Please check your credentials.')),
+        SnackBar(content: Text(error)),
       );
+      auth.clearError();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
     String roleText = widget.role == 'owner' ? 'Pet Owner' : 'Dog Walker';
 
     return Scaffold(
@@ -88,13 +84,42 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 14),
               Container(
-                height: 120,
+                height: 128,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.accentSoft,
+                      AppColors.surface,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(AppRadii.lg),
+                  border: Border.all(color: AppColors.border.withValues(alpha: 0.75)),
+                  boxShadow: AppShadows.card(context),
                 ),
-                child: const Icon(Icons.pets_rounded, size: 56),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.mintStart.withValues(alpha: 0.22),
+                          AppColors.mintEnd.withValues(alpha: 0.14),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.mintStart.withValues(alpha: 0.15),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.pets_rounded, size: 48, color: AppColors.mintDeep),
+                  ),
+                ),
               ),
               const SizedBox(height: 22),
               Text(
@@ -137,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              if (isLoading)
+              if (auth.isLoading)
                 const Center(child: CircularProgressIndicator())
               else
                 GradientActionButton(

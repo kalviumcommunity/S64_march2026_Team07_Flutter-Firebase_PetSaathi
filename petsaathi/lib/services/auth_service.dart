@@ -1,12 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import '../models/user_model.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   User? get currentUser => _auth.currentUser;
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
+
 
   Future<User?> signUp(String email, String password, String role) async {
     try {
@@ -14,24 +17,36 @@ class AuthService {
         email: email,
         password: password,
       );
-      
+
       // Save role to Firestore
       if (userCredential.user != null) {
         final defaultName = email.split('@').first;
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'email': email,
-          'role': role,
-          'name': defaultName,
-          'avatarUrl': null,
-          'created_at': FieldValue.serverTimestamp(),
-        });
+        final userModel = UserModel(
+          uid: userCredential.user!.uid,
+          email: email,
+          role: role,
+          name: defaultName,
+          avatarUrl: null,
+          isAvailable: true,
+          trustScore: 5.0,
+          location: 'New York, US', // Default
+          createdAt: DateTime.now(),
+        );
+
+        await _firestore
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set(userModel.toMap());
       }
-      
+
       return userCredential.user;
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Signup FirebaseAuthException: ${e.code} - ${e.message}');
+      rethrow;
     } catch (e, st) {
       debugPrint('Signup Error: $e');
       debugPrint('$st');
-      return null;
+      rethrow;
     }
   }
 
@@ -42,10 +57,13 @@ class AuthService {
         password: password,
       );
       return userCredential.user;
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Login FirebaseAuthException: ${e.code} - ${e.message}');
+      rethrow;
     } catch (e, st) {
       debugPrint('Login Error: $e');
       debugPrint('$st');
-      return null;
+      rethrow;
     }
   }
   
@@ -63,7 +81,21 @@ class AuthService {
     }
   }
 
-  Stream<UserProfile?> watchCurrentUserProfile() {
+  Future<UserModel?> getUserProfile(String uid) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists && doc.data() != null) {
+        return UserModel.fromMap(uid, doc.data()!);
+      }
+      return null;
+    } catch (e, st) {
+      debugPrint('Get Profile Error: $e');
+      debugPrint('$st');
+      return null;
+    }
+  }
+
+  Stream<UserModel?> watchCurrentUserProfile() {
     final user = currentUser;
     if (user == null) {
       return Stream.value(null);
@@ -71,33 +103,26 @@ class AuthService {
     return _firestore.collection('users').doc(user.uid).snapshots().map((doc) {
       final data = doc.data();
       if (data == null) return null;
-      return UserProfile(
-        uid: user.uid,
-        role: (data['role'] as String?) ?? 'owner',
-        email: (data['email'] as String?) ?? '',
-        name: (data['name'] as String?) ?? 'Pet Parent',
-        avatarUrl: data['avatarUrl'] as String?,
-      );
+      return UserModel.fromMap(user.uid, data);
     });
+  }
+
+  Future<void> updateProfile({
+    required String name,
+    required String? location,
+    required bool isAvailable,
+  }) async {
+    final user = currentUser;
+    if (user != null) {
+      await _firestore.collection('users').doc(user.uid).update({
+        'name': name,
+        'location': location,
+        'isAvailable': isAvailable,
+      });
+    }
   }
 
   Future<void> logout() async {
     await _auth.signOut();
   }
-}
-
-class UserProfile {
-  final String uid;
-  final String role;
-  final String email;
-  final String name;
-  final String? avatarUrl;
-
-  const UserProfile({
-    required this.uid,
-    required this.role,
-    required this.email,
-    required this.name,
-    required this.avatarUrl,
-  });
-}
+}

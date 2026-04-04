@@ -1,8 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../services/auth_service.dart';
-import '../services/petsaathi_data_service.dart';
+import '../services/pet_service.dart';
+import '../models/pet_model.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_widgets.dart';
 import 'create_pet_profile_screen.dart';
@@ -16,8 +17,7 @@ class OwnerPetsScreen extends StatefulWidget {
 }
 
 class _OwnerPetsScreenState extends State<OwnerPetsScreen> {
-  final _auth = AuthService();
-  final _data = PetSaathiDataService();
+  final _petService = PetService();
 
   Future<void> _openCreatePetProfile() async {
     final created = await Navigator.push<bool>(
@@ -41,9 +41,10 @@ class _OwnerPetsScreenState extends State<OwnerPetsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final auth = context.watch<AuthProvider>();
+    final user = auth.user;
 
-    if (uid == null) {
+    if (user == null) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('My Pets'),
@@ -82,110 +83,89 @@ class _OwnerPetsScreenState extends State<OwnerPetsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Owner Profile Card
-              StreamBuilder<UserProfile?>(
-                stream: _auth.watchCurrentUserProfile(),
-                builder: (context, snapshot) {
-                  final profile = snapshot.data;
-                  final firstName = (profile?.name.isNotEmpty ?? false)
-                      ? profile!.name.split(' ').first
-                      : 'Pet Parent';
-
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadii.lg),
+                  border: Border.all(color: AppColors.border.withValues(alpha: 0.65)),
+                  boxShadow: AppShadows.card(context),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 28,
-                              backgroundColor: const Color(0xFFD7EEE0),
-                              child: profile?.avatarUrl != null &&
-                                      profile!.avatarUrl!.isNotEmpty
-                                  ? ClipOval(
-                                      child: Image.network(
-                                        profile.avatarUrl!,
-                                        width: 56,
-                                        height: 56,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )
-                                  : const Icon(Icons.person_rounded,
-                                      size: 28, color: AppColors.textPrimary),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    firstName,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w800,
-                                        ),
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor: AppColors.accentSoft,
+                          child: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                              ? ClipOval(
+                                  child: Image.network(
+                                    user.avatarUrl!,
+                                    width: 56,
+                                    height: 56,
+                                    fit: BoxFit.cover,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    profile?.email ?? 'pet@petsaathi.com',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: AppColors.textMuted,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () => _showPendingMessage(
-                                'Profile editing is coming soon!',
-                              ),
-                              child: const Icon(
-                                Icons.edit_rounded,
-                                size: 20,
-                                color: AppColors.textMuted,
-                              ),
-                            ),
-                          ],
+                                )
+                              : const Icon(Icons.person_rounded, size: 28, color: AppColors.textPrimary),
                         ),
-                        const SizedBox(height: 14),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEEF4F0),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: StreamBuilder<List<PetSummary>>(
-                            stream: _data.watchOwnerPets(uid),
-                            builder: (context, petSnapshot) {
-                              final petCount = petSnapshot.data?.length ?? 0;
-                              return Text(
-                                '$petCount ${petCount == 1 ? 'pet' : 'pets'} in your care',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: const Color(0xFF5FCD85),
-                                      fontWeight: FontWeight.w600,
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.name,
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.w800,
                                     ),
-                              );
-                            },
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                user.email,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.textMuted,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => _showPendingMessage(
+                            'Profile editing is coming soon!',
+                          ),
+                          child: const Icon(
+                            Icons.edit_rounded,
+                            size: 20,
+                            color: AppColors.textMuted,
                           ),
                         ),
                       ],
                     ),
-                  );
-                },
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEEF4F0),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: StreamBuilder<List<PetModel>>(
+                        stream: _petService.watchOwnerPets(user.uid),
+                        builder: (context, petSnapshot) {
+                          final petCount = petSnapshot.data?.length ?? 0;
+                          return Text(
+                            '$petCount ${petCount == 1 ? 'pet' : 'pets'} in your care',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: const Color(0xFF5FCD85),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 22),
 
@@ -198,8 +178,8 @@ class _OwnerPetsScreenState extends State<OwnerPetsScreen> {
               ),
               const SizedBox(height: 12),
 
-              StreamBuilder<List<PetSummary>>(
-                stream: _data.watchOwnerPets(uid),
+              StreamBuilder<List<PetModel>>(
+                stream: _petService.watchOwnerPets(user.uid),
                 builder: (context, snapshot) {
                   final pets = snapshot.data ?? const [];
 
@@ -239,7 +219,7 @@ class _OwnerPetsScreenState extends State<OwnerPetsScreen> {
     );
   }
 
-  Future<void> _openEditPet(PetSummary pet) async {
+  Future<void> _openEditPet(PetModel pet) async {
     final updated = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
@@ -255,7 +235,7 @@ class _OwnerPetsScreenState extends State<OwnerPetsScreen> {
     }
   }
 
-  void _confirmDeletePet(PetSummary pet) {
+  void _confirmDeletePet(PetModel pet) {
     showDialog(
       context: context,
       builder: (_) {
@@ -290,7 +270,7 @@ class _OwnerPetsScreenState extends State<OwnerPetsScreen> {
 
   Future<void> _deletePet(String petId) async {
     try {
-      await _data.deletePetProfile(petId);
+      await _petService.deletePetProfile(petId);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Pet profile deleted.')),
@@ -305,7 +285,7 @@ class _OwnerPetsScreenState extends State<OwnerPetsScreen> {
 }
 
 class _PetListCard extends StatelessWidget {
-  final PetSummary pet;
+  final PetModel pet;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -332,14 +312,14 @@ class _PetListCard extends StatelessWidget {
             child: SizedBox(
               width: 100,
               height: 100,
-              child: pet.imageUrl.isEmpty
+              child: pet.photoUrl.isEmpty
                   ? Container(
                       color: const Color(0xFFE6ECE8),
                       alignment: Alignment.center,
                       child: const Icon(Icons.pets_rounded, size: 40),
                     )
                   : Image.network(
-                      pet.imageUrl,
+                      pet.photoUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Container(
                         color: const Color(0xFFE6ECE8),
@@ -388,8 +368,7 @@ class _PetListCard extends StatelessWidget {
                     color: const Color(0xFFF2F4F3),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.edit_rounded,
-                      size: 18, color: AppColors.textPrimary),
+                  child: const Icon(Icons.edit_rounded, size: 18, color: AppColors.textPrimary),
                 ),
               ),
               const SizedBox(height: 8),
@@ -401,8 +380,7 @@ class _PetListCard extends StatelessWidget {
                     color: const Color(0xFFFFEEEE),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.delete_rounded,
-                      size: 18, color: Colors.red),
+                  child: const Icon(Icons.delete_rounded, size: 18, color: Colors.red),
                 ),
               ),
             ],

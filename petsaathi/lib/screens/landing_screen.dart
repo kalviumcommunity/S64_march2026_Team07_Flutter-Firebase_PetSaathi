@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
+import 'owner_dashboard.dart';
+import 'walker_dashboard.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_widgets.dart';
+import '../providers/auth_provider.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -30,38 +34,119 @@ class _LandingScreenState extends State<LandingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
+    // Initial load/Auto-login
+    if (auth.isAuthenticated && auth.user != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (auth.user?.role == 'owner') {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const OwnerDashboard()),
+            (route) => false,
+          );
+        } else if (auth.user?.role == 'walker') {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const WalkerDashboard()),
+            (route) => false,
+          );
+        }
+      });
+
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 180,
-                      height: 180,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(90),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFEAF8EE), Color(0xFFDDF3E3)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.accentSoft.withValues(alpha: 0.55),
+                    AppColors.background,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: -100,
+            right: -70,
+            child: IgnorePointer(
+              child: Container(
+                width: 260,
+                height: 260,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.mintEnd.withValues(alpha: 0.18),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 120,
+            left: -40,
+            child: IgnorePointer(
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.mintStart.withValues(alpha: 0.1),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 184,
+                          height: 184,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(92),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFE8F8EF), Color(0xFFD4F0E0)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.mintStart.withValues(alpha: 0.22),
+                                blurRadius: 32,
+                                offset: const Offset(0, 14),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.85),
+                              width: 3,
+                            ),
+                          ),
+                          child: const Icon(Icons.pets_rounded, size: 86, color: AppColors.mintDeep),
                         ),
-                      ),
-                      child: const Icon(Icons.pets_rounded, size: 88, color: AppColors.textPrimary),
-                    ),
                     const SizedBox(height: 28),
                     Text(
                       'One Home for All\nYour Pet\'s Needs',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.displaySmall?.copyWith(
                             fontWeight: FontWeight.w800,
-                            letterSpacing: -0.7,
+                            letterSpacing: -0.9,
+                            height: 1.12,
                           ),
                     ),
                     const SizedBox(height: 14),
@@ -97,13 +182,14 @@ class _LandingScreenState extends State<LandingScreen> {
                     const SnackBar(content: Text('Social login will be enabled in the next milestone.')),
                   );
                 },
-                icon: const Icon(Icons.apple_rounded),
+                icon: const Icon(Icons.apple_rounded, size: 22),
                 label: const Text('Sign in with Apple'),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(54),
                   foregroundColor: AppColors.textPrimary,
-                  side: const BorderSide(color: AppColors.border),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                  backgroundColor: AppColors.surface,
+                  side: BorderSide(color: AppColors.border.withValues(alpha: 0.95), width: 1.2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.pill)),
                   textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -113,6 +199,8 @@ class _LandingScreenState extends State<LandingScreen> {
             ],
           ),
         ),
+          ),
+        ],
       ),
     );
   }
@@ -166,14 +254,26 @@ class _RoleChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadii.md),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? AppColors.surface : const Color(0xFFE9EEEB),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: selected ? AppColors.mintStart : AppColors.border),
+          color: selected ? AppColors.surface : AppColors.surface.withValues(alpha: 0.65),
+          borderRadius: BorderRadius.circular(AppRadii.md),
+          border: Border.all(
+            color: selected ? AppColors.mintStart : AppColors.border,
+            width: selected ? 1.8 : 1,
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: AppColors.mintStart.withValues(alpha: 0.2),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
         ),
         alignment: Alignment.center,
         child: Text(

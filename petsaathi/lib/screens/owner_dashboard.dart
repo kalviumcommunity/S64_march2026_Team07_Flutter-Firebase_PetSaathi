@@ -1,14 +1,18 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../services/auth_service.dart';
-import '../services/petsaathi_data_service.dart';
+import '../services/pet_service.dart';
+import '../services/activity_service.dart';
+import '../models/pet_model.dart';
+import '../models/activity_log_model.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_widgets.dart';
 import 'bookings_history_screen.dart';
 import 'create_pet_profile_screen.dart';
 import 'messages_conversation_screen.dart';
 import 'owner_pets_screen.dart';
+import 'walker_discovery_screen.dart';
 
 class OwnerDashboard extends StatefulWidget {
   const OwnerDashboard({super.key});
@@ -18,8 +22,8 @@ class OwnerDashboard extends StatefulWidget {
 }
 
 class _OwnerDashboardState extends State<OwnerDashboard> {
-  final _auth = AuthService();
-  final _data = PetSaathiDataService();
+  final _petService = PetService();
+  final _activityService = ActivityService();
   int _currentTab = 0;
 
   void _showPendingMessage(String message) {
@@ -40,6 +44,13 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
         const SnackBar(content: Text('Pet profile created successfully.')),
       );
     }
+  }
+
+  void _openWalkerDiscovery() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const WalkerDiscoveryScreen()),
+    );
   }
 
   @override
@@ -79,9 +90,10 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   }
 
   Widget _buildHomeTabContent() {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final auth = context.watch<AuthProvider>();
+    final user = auth.user;
 
-    if (uid == null) {
+    if (user == null) {
       return Center(
         child: Text(
           'Session expired. Please log in again.',
@@ -90,90 +102,86 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
       );
     }
 
+    final firstName = user.name.isNotEmpty ? user.name.split(' ').first : 'Pet Parent';
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          StreamBuilder<UserProfile?>(
-            stream: _auth.watchCurrentUserProfile(),
-            builder: (context, snapshot) {
-              final profile = snapshot.data;
-              final firstName = (profile?.name.isNotEmpty ?? false)
-                  ? profile!.name.split(' ').first
-                  : 'Pet Parent';
-
-              return Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Column(
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadii.xl),
+              border: Border.all(color: AppColors.border.withValues(alpha: 0.65)),
+              boxShadow: AppShadows.card(context),
+            ),
+            child: Column(
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        const SurfaceIconButton(
-                          icon: Icons.pets_rounded,
-                          onTap: _noop,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Welcome, $firstName',
-                            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.6,
-                                ),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _showPendingMessage('Profile page implementation is next in this rollout.'),
-                          child: CircleAvatar(
-                            radius: 24,
-                            backgroundColor: const Color(0xFFD7EEE0),
-                            child: profile?.avatarUrl != null && profile!.avatarUrl!.isNotEmpty
-                                ? ClipOval(
-                                    child: Image.network(
-                                      profile.avatarUrl!,
-                                      width: 48,
-                                      height: 48,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
-                                : const Icon(Icons.person_rounded, size: 26, color: AppColors.textPrimary),
-                          ),
-                        ),
-                      ],
+                    const SurfaceIconButton(
+                      icon: Icons.pets_rounded,
+                      onTap: _noop,
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GradientActionButton(
-                            label: 'Find Sitter',
-                            onPressed: () => _showPendingMessage('Walker discovery page is next in the implementation queue.'),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: GradientActionButton(
-                            label: 'Book Visit',
-                            onPressed: _openCreatePetProfile,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Welcome, $firstName',
+                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.6,
+                            ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => _showPendingMessage('Profile page implementation is next in this rollout.'),
+                      child: CircleAvatar(
+                        radius: 24,
+                        backgroundColor: AppColors.accentSoft,
+                        child: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                            ? ClipOval(
+                                child: Image.network(
+                                  user.avatarUrl!,
+                                  width: 48,
+                                  height: 48,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const Icon(Icons.person_rounded, size: 26, color: AppColors.textPrimary),
+                      ),
                     ),
                   ],
                 ),
-              );
-            },
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GradientActionButton(
+                        label: 'Find Walker',
+                        onPressed: _openWalkerDiscovery,
+                        icon: Icons.search_rounded,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: GradientActionButton(
+                        label: 'Add Pet',
+                        onPressed: _openCreatePetProfile,
+                        icon: Icons.add_rounded,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 18),
           const AppSectionTitle(title: 'Active Pets'),
           const SizedBox(height: 10),
-          StreamBuilder<List<PetSummary>>(
-            stream: _data.watchOwnerPets(uid),
+          StreamBuilder<List<PetModel>>(
+            stream: _petService.watchOwnerPets(user.uid),
             builder: (context, snapshot) {
               final pets = snapshot.data ?? const [];
 
@@ -207,11 +215,11 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
               );
             },
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 24),
           const AppSectionTitle(title: 'Recent Activity'),
           const SizedBox(height: 10),
-          StreamBuilder<List<ActivityEvent>>(
-            stream: _data.watchRecentOwnerActivity(uid),
+          StreamBuilder<List<ActivityLog>>(
+            stream: _activityService.watchUserActivity(user.uid),
             builder: (context, snapshot) {
               final activities = snapshot.data ?? const [];
 
@@ -226,15 +234,17 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                 return _EmptyStateCard(
                   title: 'No activity yet',
                   subtitle: 'Once you request or complete bookings, updates will appear here.',
-                  actionLabel: 'Create first booking',
-                  onTap: () => _showPendingMessage('Booking creation flow wiring is planned next.'),
+                  actionLabel: 'Find a Walker',
+                  onTap: _openWalkerDiscovery,
                 );
               }
 
               return Container(
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(AppRadii.lg),
+                  border: Border.all(color: AppColors.border.withValues(alpha: 0.55)),
+                  boxShadow: AppShadows.card(context),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 child: Column(
@@ -252,7 +262,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
 void _noop() {}
 
 class _PetCard extends StatelessWidget {
-  final PetSummary pet;
+  final PetModel pet;
 
   const _PetCard({required this.pet});
 
@@ -264,15 +274,9 @@ class _PetCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x10000000),
-              blurRadius: 12,
-              offset: Offset(0, 6),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.7)),
+          boxShadow: AppShadows.card(context),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,23 +286,23 @@ class _PetCard extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 height: 145,
-                child: pet.imageUrl.isEmpty
+                child: pet.photoUrl.isEmpty
                     ? Container(
-                        color: const Color(0xFFE6ECE8),
+                        color: AppColors.accentSoft.withValues(alpha: 0.65),
                         alignment: Alignment.center,
-                        child: const Icon(Icons.pets_rounded, size: 44),
+                        child: const Icon(Icons.pets_rounded, size: 44, color: AppColors.mintDeep),
                       )
                     : Image.network(
-                        pet.imageUrl,
+                        pet.photoUrl,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
-                          color: const Color(0xFFE6ECE8),
+                          color: AppColors.accentSoft.withValues(alpha: 0.65),
                           alignment: Alignment.center,
-                          child: const Icon(Icons.pets_rounded, size: 44),
+                          child: const Icon(Icons.pets_rounded, size: 44, color: AppColors.mintDeep),
                         ),
                       ),
-            ),
               ),
+            ),
             const SizedBox(height: 12),
             Text(
               pet.name,
@@ -323,7 +327,7 @@ class _PetCard extends StatelessWidget {
 }
 
 class _ActivityTile extends StatelessWidget {
-  final ActivityEvent event;
+  final ActivityLog event;
 
   const _ActivityTile({required this.event});
 
@@ -336,7 +340,20 @@ class _ActivityTile extends StatelessWidget {
       case 'cancel':
         return Icons.cancel_rounded;
       default:
-        return Icons.pets_rounded;
+        return Icons.pending_actions_rounded;
+    }
+  }
+
+  Color get iconColor {
+    switch (event.iconType) {
+      case 'done':
+        return AppColors.success;
+      case 'schedule':
+        return AppColors.info;
+      case 'cancel':
+        return AppColors.error;
+      default:
+        return AppColors.warning;
     }
   }
 
@@ -350,10 +367,10 @@ class _ActivityTile extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: const Color(0xFFEEF4F0),
+              color: iconColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(25),
             ),
-            child: Icon(icon, color: AppColors.textPrimary),
+            child: Icon(icon, color: iconColor),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -398,7 +415,9 @@ class _EmptyStateCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.55)),
+        boxShadow: AppShadows.card(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,9 +465,16 @@ class _OwnerBottomNav extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1A3328).withValues(alpha: 0.08),
+            blurRadius: 28,
+            offset: const Offset(0, -6),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -462,26 +488,43 @@ class _OwnerBottomNav extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   AnimatedContainer(
-                    duration: const Duration(milliseconds: 160),
-                    curve: Curves.easeOut,
-                    width: 42,
-                    height: 42,
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOutCubic,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
-                      color: selected ? AppColors.mintStart : Colors.transparent,
+                      gradient: selected
+                          ? const LinearGradient(
+                              colors: [AppColors.mintStart, AppColors.mintEnd],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null,
+                      color: selected ? null : Colors.transparent,
                       borderRadius: BorderRadius.circular(99),
+                      boxShadow: selected
+                          ? [
+                              BoxShadow(
+                                color: AppColors.mintStart.withValues(alpha: 0.35),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : null,
                     ),
                     child: Icon(
                       items[index].$1,
-                      color: selected ? Colors.black87 : const Color(0xFF9A9A9A),
+                      color: selected ? Colors.white : AppColors.navInactive,
+                      size: 22,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     items[index].$2,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: selected ? Colors.black87 : const Color(0xFF9A9A9A),
-                          fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                          letterSpacing: 0.3,
+                          color: selected ? AppColors.mintDeep : AppColors.navInactive,
+                          fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                          letterSpacing: 0.2,
                         ),
                   ),
                 ],

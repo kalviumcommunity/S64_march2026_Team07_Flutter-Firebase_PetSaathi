@@ -1,6 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
-import '../services/petsaathi_data_service.dart';
+import '../services/pet_service.dart';
+import '../models/pet_model.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_widgets.dart';
 
@@ -14,11 +19,21 @@ class EditPetProfileScreen extends StatefulWidget {
 }
 
 class _EditPetProfileScreenState extends State<EditPetProfileScreen> {
-  final _dataService = PetSaathiDataService();
+  final _petService = PetService();
+  final _picker = ImagePicker();
+  
   late TextEditingController _nameController;
-  late TextEditingController _notesController;
+  late TextEditingController _breedController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _thingsToKnowController;
+  late TextEditingController _medicalHealthController;
+  
   late String _petType;
   late String _ageGroup;
+  String? _currentPhotoUrl;
+  File? _newImageFile;
+  
+  PetModel? _pet;
   bool _isSaving = false;
   bool _isLoading = true;
   String? _errorMessage;
@@ -27,7 +42,10 @@ class _EditPetProfileScreenState extends State<EditPetProfileScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController();
-    _notesController = TextEditingController();
+    _breedController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _thingsToKnowController = TextEditingController();
+    _medicalHealthController = TextEditingController();
     _petType = 'Dog';
     _ageGroup = 'Adult';
     _loadPetData();
@@ -35,10 +53,10 @@ class _EditPetProfileScreenState extends State<EditPetProfileScreen> {
 
   Future<void> _loadPetData() async {
     try {
-      final petData = await _dataService.getPetDetail(widget.petId);
+      final pet = await _petService.getPetDetail(widget.petId);
       if (!mounted) return;
 
-      if (petData == null) {
+      if (pet == null) {
         setState(() {
           _isLoading = false;
           _errorMessage = 'Pet not found';
@@ -47,10 +65,15 @@ class _EditPetProfileScreenState extends State<EditPetProfileScreen> {
       }
 
       setState(() {
-        _nameController.text = petData.name;
-        _petType = petData.petType;
-        _ageGroup = petData.ageGroup;
-        _notesController.text = petData.notes;
+        _pet = pet;
+        _nameController.text = pet.name;
+        _breedController.text = pet.breed;
+        _petType = pet.petType;
+        _ageGroup = pet.ageGroup;
+        _descriptionController.text = pet.description;
+        _thingsToKnowController.text = pet.thingsToKnow;
+        _medicalHealthController.text = pet.medicalHealth;
+        _currentPhotoUrl = pet.photoUrl;
         _isLoading = false;
       });
     } catch (e) {
@@ -65,12 +88,31 @@ class _EditPetProfileScreenState extends State<EditPetProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _notesController.dispose();
+    _breedController.dispose();
+    _descriptionController.dispose();
+    _thingsToKnowController.dispose();
+    _medicalHealthController.dispose();
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    if (pickedFile != null) {
+      setState(() => _newImageFile = File(pickedFile.path));
+    }
+  }
+
   Future<void> _saveProfile() async {
+    final auth = context.read<AuthProvider>();
+    final ownerId = auth.user?.uid;
     final petName = _nameController.text.trim();
+
+    if (ownerId == null || _pet == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Session expired. Please login again.')),
+      );
+      return;
+    }
 
     if (petName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -82,15 +124,28 @@ class _EditPetProfileScreenState extends State<EditPetProfileScreen> {
     setState(() => _isSaving = true);
 
     try {
-      await _dataService.updatePetProfile(
-        petId: widget.petId,
-        input: CreatePetProfileInput(
-          name: petName,
-          petType: _petType,
-          ageGroup: _ageGroup,
-          notes: _notesController.text.trim(),
-        ),
+      String photoUrl = _currentPhotoUrl ?? '';
+      if (_newImageFile != null) {
+        photoUrl = await _petService.uploadPetPhoto(ownerId, _newImageFile!);
+      }
+
+      final updatedPet = PetModel(
+        id: widget.petId,
+        ownerId: ownerId,
+        name: petName,
+        petType: _petType,
+        breed: _breedController.text.trim(),
+        ageGroup: _ageGroup,
+        description: _descriptionController.text.trim(),
+        thingsToKnow: _thingsToKnowController.text.trim(),
+        medicalHealth: _medicalHealthController.text.trim(),
+        photoUrl: photoUrl,
+        statusText: 'Healthy & Happy',
+        createdAt: _pet!.createdAt,
+        updatedAt: DateTime.now(),
       );
+
+      await _petService.updatePetProfile(updatedPet);
 
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -135,7 +190,7 @@ class _EditPetProfileScreenState extends State<EditPetProfileScreen> {
 
   Future<void> _deletePet() async {
     try {
-      await _dataService.deletePetProfile(widget.petId);
+      await _petService.deletePetProfile(widget.petId);
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
@@ -150,36 +205,15 @@ class _EditPetProfileScreenState extends State<EditPetProfileScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Edit Pet Profile'),
-          elevation: 0,
-          backgroundColor: AppColors.background,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
+        appBar: AppBar(title: const Text('Edit Pet Profile')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_errorMessage != null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Edit Pet Profile'),
-          elevation: 0,
-          backgroundColor: AppColors.background,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Center(
-          child: Text(
-            _errorMessage!,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ),
+        appBar: AppBar(title: const Text('Edit Pet Profile')),
+        body: Center(child: Text(_errorMessage!)),
       );
     }
 
@@ -187,9 +221,8 @@ class _EditPetProfileScreenState extends State<EditPetProfileScreen> {
       appBar: AppBar(
         title: const Text('Edit Pet Profile'),
         elevation: 0,
-        backgroundColor: AppColors.background,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -197,203 +230,155 @@ class _EditPetProfileScreenState extends State<EditPetProfileScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(18, 20, 18, 24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Pet Name Field
-              Text(
-                'Pet Name',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
+              _buildImagePicker(),
+              const SizedBox(height: 24),
+              _buildLabel('Pet Name'),
+              _buildTextField(_nameController, 'e.g., Max, Bella', Icons.pets_rounded),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildLabel('Type'),
+                        _buildTypeDropdown(),
+                      ],
                     ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  hintText: 'e.g., Max, Bella',
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide:
-                        const BorderSide(color: Color(0xFF5FCD85), width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Pet Type
-              Text(
-                'Type',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildLabel('Age Group'),
+                        _buildAgeDropdown(),
+                      ],
                     ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: _petType,
-                items: const [
-                  DropdownMenuItem(value: 'Dog', child: Text('Dog')),
-                  DropdownMenuItem(value: 'Cat', child: Text('Cat')),
-                  DropdownMenuItem(value: 'Rabbit', child: Text('Rabbit')),
-                  DropdownMenuItem(value: 'Hamster', child: Text('Hamster')),
-                  DropdownMenuItem(value: 'Bird', child: Text('Bird')),
-                  DropdownMenuItem(value: 'Other', child: Text('Other')),
-                ]
-                    .map(
-                      (item) => DropdownMenuItem(
-                        value: item.value,
-                        child: item.child,
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _petType = value);
-                  }
-                },
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Age Group
-              Text(
-                'Age Group',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: _ageGroup,
-                items: const [
-                  DropdownMenuItem(value: 'Puppy/Kitten', child: Text('Puppy/Kitten')),
-                  DropdownMenuItem(value: 'Young', child: Text('Young')),
-                  DropdownMenuItem(value: 'Adult', child: Text('Adult')),
-                  DropdownMenuItem(value: 'Senior', child: Text('Senior')),
-                ]
-                    .map(
-                      (item) => DropdownMenuItem(
-                        value: item.value,
-                        child: item.child,
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _ageGroup = value);
-                  }
-                },
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Notes
-              Text(
-                'Notes (Optional)',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _notesController,
-                maxLength: 120,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'Any special notes about your pet...',
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide:
-                        const BorderSide(color: Color(0xFF5FCD85), width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                ),
-              ),
+              const SizedBox(height: 16),
+              _buildLabel('Breed'),
+              _buildTextField(_breedController, 'e.g., Golden Retriever', Icons.category_rounded),
+              const SizedBox(height: 16),
+              _buildLabel('Habits & Behavior'),
+              _buildTextField(_descriptionController, 'Daily habits, behavior around others...', Icons.psychology_rounded, maxLines: 3),
+              const SizedBox(height: 16),
+              _buildLabel('Things to know'),
+              _buildTextField(_thingsToKnowController, 'Feeding schedule, emergency contacts...', Icons.info_outline_rounded, maxLines: 2),
+              const SizedBox(height: 16),
+              _buildLabel('Medical Health'),
+              _buildTextField(_medicalHealthController, 'Conditions, allergies, medication...', Icons.medical_services_rounded, maxLines: 2),
               const SizedBox(height: 28),
-
-              // Save Button
-              SizedBox(
-                width: double.infinity,
-                child: GradientActionButton(
-                  label: _isSaving ? 'Saving...' : 'Save Changes',
-                  onPressed: _isSaving ? null : _saveProfile,
+              if (_isSaving)
+                const Center(child: CircularProgressIndicator())
+              else ...[
+                GradientActionButton(
+                  label: 'Save Changes',
+                  onPressed: _saveProfile,
                 ),
-              ),
-              const SizedBox(height: 12),
-
-              // Delete Button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
+                const SizedBox(height: 12),
+                OutlinedButton(
                   onPressed: _confirmDelete,
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.red, width: 1.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: Text(
-                    'Delete Pet',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Colors.red,
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
+                  child: const Text('Delete Profile', style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
-              ),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  Widget _buildImagePicker() {
+    return Center(
+      child: GestureDetector(
+        onTap: _pickImage,
+        child: Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: AppColors.border, width: 2),
+          ),
+          child: _newImageFile != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: Image.file(_newImageFile!, fit: BoxFit.cover),
+                )
+              : (_currentPhotoUrl != null && _currentPhotoUrl!.isNotEmpty)
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: Image.network(_currentPhotoUrl!, fit: BoxFit.cover),
+                    )
+                  : const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_a_photo_outlined, size: 32, color: AppColors.textMuted),
+                        SizedBox(height: 4),
+                        Text('Change Photo', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                      ],
+                    ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {int maxLines = 1}) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(icon),
+      ),
+    );
+  }
+
+  Widget _buildTypeDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _petType,
+      items: const [
+        DropdownMenuItem(value: 'Dog', child: Text('Dog')),
+        DropdownMenuItem(value: 'Cat', child: Text('Cat')),
+      ],
+      onChanged: (value) {
+        if (value != null) setState(() => _petType = value);
+      },
+    );
+  }
+
+  Widget _buildAgeDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _ageGroup,
+      items: const [
+        DropdownMenuItem(value: 'Puppy/Kitten', child: Text('Puppy/Kitten')),
+        DropdownMenuItem(value: 'Adult', child: Text('Adult')),
+        DropdownMenuItem(value: 'Senior', child: Text('Senior')),
+      ],
+      onChanged: (value) {
+        if (value != null) setState(() => _ageGroup = value);
+      },
     );
   }
 }

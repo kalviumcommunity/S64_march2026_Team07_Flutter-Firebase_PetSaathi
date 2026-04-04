@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_widgets.dart';
 import 'owner_dashboard.dart';
@@ -17,8 +18,6 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final AuthService _auth = AuthService();
-  bool isLoading = false;
   bool obscurePassword = true;
 
   @override
@@ -31,6 +30,7 @@ class _SignupScreenState extends State<SignupScreen> {
   void handleSignup() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
+    final auth = context.read<AuthProvider>();
 
     if (email.isEmpty || password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -39,14 +39,13 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    setState(() => isLoading = true);
-    final user = await _auth.signUp(
+    final success = await auth.signUp(
       email,
       password,
       widget.role,
     );
 
-    if (user != null && mounted) {
+    if (success && mounted) {
       if (widget.role == 'owner') {
         Navigator.pushAndRemoveUntil(
           context,
@@ -62,16 +61,18 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     } else {
       if (mounted) {
-        setState(() => isLoading = false);
+        final error = auth.errorMessage ?? 'Signup failed. Please try again.';
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Signup failed. Please try again.')),
+          SnackBar(content: Text(error)),
         );
+        auth.clearError();
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
     String roleText = widget.role == 'owner' ? 'Pet Owner' : 'Dog Walker';
 
     return Scaffold(
@@ -84,13 +85,42 @@ class _SignupScreenState extends State<SignupScreen> {
             children: [
               const SizedBox(height: 12),
               Container(
-                height: 120,
+                height: 128,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.accentSoft,
+                      AppColors.surface,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(AppRadii.lg),
+                  border: Border.all(color: AppColors.border.withValues(alpha: 0.75)),
+                  boxShadow: AppShadows.card(context),
                 ),
-                child: const Icon(Icons.person_add_alt_1_rounded, size: 56),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.mintStart.withValues(alpha: 0.22),
+                          AppColors.mintEnd.withValues(alpha: 0.14),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.mintStart.withValues(alpha: 0.15),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.person_add_alt_1_rounded, size: 48, color: AppColors.mintDeep),
+                  ),
+                ),
               ),
               const SizedBox(height: 22),
               Text(
@@ -131,7 +161,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              if (isLoading)
+              if (auth.isLoading)
                 const Center(child: CircularProgressIndicator())
               else
                 GradientActionButton(
@@ -162,4 +192,4 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
     );
   }
-}
+}
