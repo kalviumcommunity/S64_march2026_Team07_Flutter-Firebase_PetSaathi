@@ -81,8 +81,8 @@ class _RequestList extends StatelessWidget {
 
         final allRequests = snapshot.data ?? [];
         final requests = upcoming
-            ? allRequests.where((r) => r.status != 'completed' && r.status != 'cancelled' && r.status != 'rejected').toList()
-            : allRequests.where((r) => r.status == 'completed' || r.status == 'cancelled' || r.status == 'rejected').toList();
+          ? allRequests.where((r) => r.status != 'completed' && r.status != 'cancelled' && r.status != 'rejected' && r.status != 'expired').toList()
+          : allRequests.where((r) => r.status == 'completed' || r.status == 'cancelled' || r.status == 'rejected' || r.status == 'expired').toList();
 
         if (requests.isEmpty) {
           return Center(

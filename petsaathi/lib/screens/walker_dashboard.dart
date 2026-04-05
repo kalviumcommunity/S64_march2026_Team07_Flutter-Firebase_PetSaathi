@@ -6,7 +6,9 @@ import '../models/walk_request_model.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/paw_widgets.dart';
+import 'booking_detail_screen.dart';
 import 'landing_screen.dart';
+import 'profile_screen.dart';
 
 class WalkerDashboard extends StatefulWidget {
   const WalkerDashboard({super.key});
@@ -33,6 +35,13 @@ class _WalkerDashboardState extends State<WalkerDashboard> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _openProfile() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+    );
   }
 
   @override
@@ -66,6 +75,7 @@ class _WalkerDashboardState extends State<WalkerDashboard> {
                       textTheme: textTheme,
                       user: user,
                       onLogoutPressed: _logout,
+                      onProfileTap: _openProfile,
                     ),
                     const SizedBox(height: 22),
                     Text(
@@ -108,16 +118,57 @@ class _WalkerDashboardState extends State<WalkerDashboard> {
                         );
                       },
                     ),
+                    const SizedBox(height: 16),
+                    StreamBuilder<WalkRequest?>(
+                      stream: _requestService.watchWalkerActiveJob(user.uid),
+                      builder: (context, snapshot) {
+                        final activeJob = snapshot.data;
+                        if (activeJob == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return _ActiveJobCard(request: activeJob);
+                      },
+                    ),
                     const SizedBox(height: 22),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Booking Requests',
-                          style: textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: darkText,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              'Booking Requests',
+                              style: textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: darkText,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            StreamBuilder<List<WalkRequest>>(
+                              stream: _requestService.watchNearbyRequests(walkerId: user.uid),
+                              builder: (context, snapshot) {
+                                final count = (snapshot.data ?? const <WalkRequest>[]).length;
+                                if (count == 0) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.error,
+                                    borderRadius: BorderRadius.circular(99),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    count > 99 ? '99+' : '$count',
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                         TextButton(
                           onPressed: () => _showActionFeedback('Refreshing...'),
@@ -133,10 +184,34 @@ class _WalkerDashboardState extends State<WalkerDashboard> {
                     ),
                     const SizedBox(height: 14),
                     StreamBuilder<List<WalkRequest>>(
-                      stream: _requestService.watchNearbyRequests(),
+                      stream: _requestService.watchNearbyRequests(walkerId: user.uid),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(40),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Error loading requests',
+                                    style: TextStyle(color: accent, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Error: ${snapshot.error}',
+                                    style: TextStyle(color: mutedText, fontSize: 12),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
                         }
                         final requests = snapshot.data ?? [];
                         if (requests.isEmpty) {
@@ -147,27 +222,53 @@ class _WalkerDashboardState extends State<WalkerDashboard> {
                             ),
                           );
                         }
+
                         return Column(
-                          children: requests.map((request) => Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: _RequestCard(
-                              request: request,
-                              accent: accent,
-                              textTheme: textTheme,
-                              onAccept: () async {
-                                await _requestService.updateRequestStatus(
-                                  request.id,
-                                  'accepted',
-                                  walkerId: user.uid,
-                                  walkerName: user.name,
-                                );
-                                _showActionFeedback('Accepted ${request.petName}\'s walk!');
-                              },
-                              onReject: () async {
-                                _showActionFeedback('Request hidden.');
-                              },
-                            ),
-                          )).toList(),
+                          children: [
+                            _IncomingRequestBanner(count: requests.length),
+                            const SizedBox(height: 10),
+                            ...requests.map((request) => Padding(
+                              padding: const EdgeInsets.only(bottom: 14),
+                              child: _RequestCard(
+                                request: request,
+                                accent: accent,
+                                textTheme: textTheme,
+                                onViewBrief: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => BookingDetailScreen(requestId: request.id)),
+                                  );
+                                },
+                                onAccept: () async {
+                                  final accepted = await _requestService.updateRequestStatus(
+                                    request.id,
+                                    'accepted',
+                                    walkerId: user.uid,
+                                    walkerName: user.name,
+                                  );
+                                  if (!context.mounted) return;
+                                  if (accepted) {
+                                    _showActionFeedback('Accepted ${request.petName}\'s walk!');
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => BookingDetailScreen(requestId: request.id)),
+                                    );
+                                  } else {
+                                    _showActionFeedback('This request was already taken or expired.');
+                                  }
+                                },
+                                onReject: () async {
+                                  await _requestService.updateRequestStatus(
+                                    request.id,
+                                    'rejected',
+                                    walkerId: user.uid,
+                                    walkerName: user.name,
+                                  );
+                                  _showActionFeedback('Request removed from your queue.');
+                                },
+                              ),
+                            )),
+                          ],
                         );
                       }
                     ),
@@ -180,6 +281,10 @@ class _WalkerDashboardState extends State<WalkerDashboard> {
               accent: accent,
               textTheme: textTheme,
               onTap: (index) {
+                if (index == 2) {
+                  _openProfile();
+                  return;
+                }
                 setState(() => _selectedBottomNavIndex = index);
               },
             ),
@@ -195,12 +300,14 @@ class _DashboardHeader extends StatelessWidget {
   final TextTheme textTheme;
   final UserModel user;
   final VoidCallback onLogoutPressed;
+  final VoidCallback onProfileTap;
 
   const _DashboardHeader({
     required this.accent,
     required this.textTheme,
     required this.user,
     required this.onLogoutPressed,
+    required this.onProfileTap,
   });
 
   @override
@@ -227,24 +334,27 @@ class _DashboardHeader extends StatelessWidget {
           onTap: onLogoutPressed,
         ),
         const SizedBox(width: 8),
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: AppColors.accentSoft,
-            borderRadius: BorderRadius.circular(99),
-            border: Border.all(color: AppColors.mintStart.withValues(alpha: 0.65), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.mintStart.withValues(alpha: 0.12),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+        GestureDetector(
+          onTap: onProfileTap,
+          child: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.accentSoft,
+              borderRadius: BorderRadius.circular(99),
+              border: Border.all(color: AppColors.mintStart.withValues(alpha: 0.65), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.mintStart.withValues(alpha: 0.12),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                ? ClipOval(child: Image.network(user.avatarUrl!, fit: BoxFit.cover))
+                : const Icon(Icons.pets_rounded, size: 20, color: AppColors.mintDeep),
           ),
-          child: user.avatarUrl != null
-              ? ClipOval(child: Image.network(user.avatarUrl!, fit: BoxFit.cover))
-              : const Icon(Icons.pets_rounded, size: 20, color: AppColors.mintDeep),
         ),
       ],
     );
@@ -506,6 +616,7 @@ class _RequestCard extends StatelessWidget {
   final WalkRequest request;
   final Color accent;
   final TextTheme textTheme;
+  final VoidCallback onViewBrief;
   final VoidCallback onAccept;
   final VoidCallback onReject;
 
@@ -513,6 +624,7 @@ class _RequestCard extends StatelessWidget {
     required this.request,
     required this.accent,
     required this.textTheme,
+    required this.onViewBrief,
     required this.onAccept,
     required this.onReject,
   });
@@ -575,6 +687,13 @@ class _RequestCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: OutlinedButton(
+                        onPressed: onViewBrief,
+                        child: const Text('View Brief'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton(
                         onPressed: onReject,
                         child: const Text('Reject'),
                       ),
@@ -609,6 +728,94 @@ class _RequestCard extends StatelessWidget {
                   ],
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActiveJobCard extends StatelessWidget {
+  final WalkRequest request;
+
+  const _ActiveJobCard({required this.request});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        border: Border.all(color: AppColors.mintStart.withValues(alpha: 0.6)),
+        boxShadow: AppShadows.card(context),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.directions_walk_rounded, color: AppColors.mintDeep),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Current Job: ${request.petName}',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ),
+              StatusBadge(status: request.status),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Open detailed brief and next action timeline.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => BookingDetailScreen(requestId: request.id)),
+              );
+            },
+            icon: const Icon(Icons.visibility_rounded),
+            label: const Text('Open Job Detail'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _IncomingRequestBanner extends StatelessWidget {
+  final int count;
+
+  const _IncomingRequestBanner({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.accentSoft,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        border: Border.all(color: AppColors.mintStart.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.notifications_active_rounded, color: AppColors.mintDeep),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$count new request${count == 1 ? '' : 's'} waiting for action',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
             ),
           ),
         ],

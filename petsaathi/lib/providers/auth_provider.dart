@@ -100,14 +100,28 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> updateProfile({
-    required String name,
-    required String? location,
-    required bool isAvailable,
+    String? name,
+    String? location,
+    bool? isAvailable,
+    String? avatarUrl,
+    String? phone,
+    String? city,
+    String? address,
+    String? bio,
+    double? pricePerWalk,
+    List<String>? availabilitySchedule,
   }) async {
     await _authService.updateProfile(
       name: name,
       location: location,
       isAvailable: isAvailable,
+      avatarUrl: avatarUrl,
+      phone: phone,
+      city: city,
+      address: address,
+      bio: bio,
+      pricePerWalk: pricePerWalk,
+      availabilitySchedule: availabilitySchedule,
     );
   }
 }

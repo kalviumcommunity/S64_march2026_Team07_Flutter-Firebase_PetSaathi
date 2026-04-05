@@ -27,6 +27,12 @@ class AuthService {
           role: role,
           name: defaultName,
           avatarUrl: null,
+          phone: null,
+          city: null,
+          address: null,
+          bio: null,
+          pricePerWalk: null,
+          availabilitySchedule: const [],
           isAvailable: true,
           trustScore: 5.0,
           location: 'New York, US', // Default
@@ -108,21 +114,38 @@ class AuthService {
   }
 
   Future<void> updateProfile({
-    required String name,
-    required String? location,
-    required bool isAvailable,
+    String? name,
+    String? location,
+    bool? isAvailable,
+    String? avatarUrl,
+    String? phone,
+    String? city,
+    String? address,
+    String? bio,
+    double? pricePerWalk,
+    List<String>? availabilitySchedule,
   }) async {
     final user = currentUser;
     if (user != null) {
-      await _firestore.collection('users').doc(user.uid).update({
-        'name': name,
-        'location': location,
-        'isAvailable': isAvailable,
-      });
+      final Map<String, dynamic> updates = {};
+      if (name != null) updates['name'] = name;
+      if (location != null) updates['location'] = location;
+      if (isAvailable != null) updates['isAvailable'] = isAvailable;
+      if (avatarUrl != null) updates['avatarUrl'] = avatarUrl;
+      if (phone != null) updates['phone'] = phone;
+      if (city != null) updates['city'] = city;
+      if (address != null) updates['address'] = address;
+      if (bio != null) updates['bio'] = bio;
+      if (pricePerWalk != null) updates['pricePerWalk'] = pricePerWalk;
+      if (availabilitySchedule != null) updates['availabilitySchedule'] = availabilitySchedule;
+
+      if (updates.isNotEmpty) {
+        await _firestore.collection('users').doc(user.uid).update(updates);
+      }
     }
   }
 
   Future<void> logout() async {
     await _auth.signOut();
   }
-}
+}

@@ -3,15 +3,20 @@ import 'package:provider/provider.dart';
 
 import '../services/pet_service.dart';
 import '../services/activity_service.dart';
+import '../services/request_service.dart';
 import '../models/pet_model.dart';
 import '../models/activity_log_model.dart';
+import '../models/walk_request_model.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_widgets.dart';
+import '../widgets/paw_widgets.dart';
+import 'booking_detail_screen.dart';
 import 'bookings_history_screen.dart';
 import 'create_pet_profile_screen.dart';
 import 'messages_conversation_screen.dart';
 import 'owner_pets_screen.dart';
+import 'profile_screen.dart';
 import 'walker_discovery_screen.dart';
 
 class OwnerDashboard extends StatefulWidget {
@@ -24,12 +29,14 @@ class OwnerDashboard extends StatefulWidget {
 class _OwnerDashboardState extends State<OwnerDashboard> {
   final _petService = PetService();
   final _activityService = ActivityService();
+  final _requestService = RequestService();
   int _currentTab = 0;
 
-  void _showPendingMessage(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+  Future<void> _openProfile() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+    );
   }
 
   Future<void> _openCreatePetProfile() async {
@@ -136,7 +143,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => _showPendingMessage('Profile page implementation is next in this rollout.'),
+                      onTap: _openProfile,
                       child: CircleAvatar(
                         radius: 24,
                         backgroundColor: AppColors.accentSoft,
@@ -159,7 +166,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                   children: [
                     Expanded(
                       child: GradientActionButton(
-                        label: 'Find Walker',
+                        label: 'Request Walker',
                         onPressed: _openWalkerDiscovery,
                         icon: Icons.search_rounded,
                       ),
@@ -176,6 +183,32 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 18),
+          const AppSectionTitle(title: 'Current Booking'),
+          const SizedBox(height: 10),
+          StreamBuilder<WalkRequest?>(
+            stream: _requestService.watchOwnerActiveRequest(user.uid),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox(
+                  height: 100,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              final active = snapshot.data;
+              if (active == null) {
+                return _EmptyStateCard(
+                  title: 'No active booking',
+                  subtitle: 'Create a broadcast request to get matched with an available walker.',
+                  actionLabel: 'Request now',
+                  onTap: _openWalkerDiscovery,
+                );
+              }
+
+              return _ActiveBookingCard(request: active);
+            },
           ),
           const SizedBox(height: 18),
           const AppSectionTitle(title: 'Active Pets'),
@@ -438,6 +471,60 @@ class _EmptyStateCard extends StatelessWidget {
               label: actionLabel,
               onPressed: onTap,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActiveBookingCard extends StatelessWidget {
+  final WalkRequest request;
+
+  const _ActiveBookingCard({required this.request});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        border: Border.all(color: AppColors.mintStart.withValues(alpha: 0.45)),
+        boxShadow: AppShadows.card(context),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Walk for ${request.petName}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ),
+              StatusBadge(status: request.status),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            request.walkerName == null
+                ? 'Waiting for a walker to accept your request.'
+                : 'Matched with ${request.walkerName}',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => BookingDetailScreen(requestId: request.id)),
+              );
+            },
+            icon: const Icon(Icons.visibility_rounded),
+            label: const Text('View detail'),
           ),
         ],
       ),

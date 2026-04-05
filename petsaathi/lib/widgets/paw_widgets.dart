@@ -21,6 +21,7 @@ class StatusBadge extends StatelessWidget {
         break;
       case 'cancelled':
       case 'rejected':
+      case 'expired':
         color = AppColors.error;
         break;
       default:

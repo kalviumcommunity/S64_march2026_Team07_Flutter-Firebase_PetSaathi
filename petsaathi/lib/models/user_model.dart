@@ -6,6 +6,12 @@ class UserModel {
   final String role; // 'owner' or 'walker'
   final String name;
   final String? avatarUrl;
+  final String? phone;
+  final String? city;
+  final String? address;
+  final String? bio;
+  final double? pricePerWalk;
+  final List<String> availabilitySchedule;
   final bool isAvailable;
   final double trustScore;
   final String? location;
@@ -17,6 +23,12 @@ class UserModel {
     required this.role,
     required this.name,
     this.avatarUrl,
+    this.phone,
+    this.city,
+    this.address,
+    this.bio,
+    this.pricePerWalk,
+    this.availabilitySchedule = const [],
     this.isAvailable = true,
     this.trustScore = 5.0,
     this.location,
@@ -30,6 +42,12 @@ class UserModel {
       role: map['role'] ?? 'owner',
       name: map['name'] ?? 'User',
       avatarUrl: map['avatarUrl'],
+      phone: map['phone'],
+      city: map['city'],
+      address: map['address'],
+      bio: map['bio'],
+      pricePerWalk: (map['pricePerWalk'] as num?)?.toDouble(),
+      availabilitySchedule: (map['availabilitySchedule'] as List?)?.map((e) => e.toString()).toList() ?? const [],
       isAvailable: map['isAvailable'] ?? true,
       trustScore: (map['trustScore'] as num?)?.toDouble() ?? 5.0,
       location: map['location'],
@@ -43,6 +61,12 @@ class UserModel {
       'role': role,
       'name': name,
       'avatarUrl': avatarUrl,
+      'phone': phone,
+      'city': city,
+      'address': address,
+      'bio': bio,
+      'pricePerWalk': pricePerWalk,
+      'availabilitySchedule': availabilitySchedule,
       'isAvailable': isAvailable,
       'trustScore': trustScore,
       'location': location,
