@@ -7,7 +7,9 @@ import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/paw_widgets.dart';
 import 'booking_detail_screen.dart';
+import 'bookings_history_screen.dart';
 import 'landing_screen.dart';
+import 'messages_conversation_screen.dart';
 import 'profile_screen.dart';
 
 class WalkerDashboard extends StatefulWidget {
@@ -65,231 +67,247 @@ class _WalkerDashboardState extends State<WalkerDashboard> {
         child: Column(
           children: [
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _DashboardHeader(
-                      accent: accent,
-                      textTheme: textTheme,
-                      user: user,
-                      onLogoutPressed: _logout,
-                      onProfileTap: _openProfile,
-                    ),
-                    const SizedBox(height: 22),
-                    Text(
-                      'Hi ${user.name.split(' ').first},\nManage your walks',
-                      style: textTheme.headlineMedium?.copyWith(
-                        color: darkText,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.7,
-                        height: 1.18,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Accept requests faster and keep your daily schedule clean.',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: mutedText,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    _SearchAndFilterBar(
-                      accent: accent,
-                      textTheme: textTheme,
-                    ),
-                    const SizedBox(height: 16),
-                    _StatsRow(
-                      accent: accent,
-                      textTheme: textTheme,
-                    ),
-                    const SizedBox(height: 18),
-                    _AvailabilityCard(
-                      accent: accent,
-                      textTheme: textTheme,
-                      isAvailableNow: user.isAvailable,
-                      onChanged: (value) async {
-                        await auth.updateProfile(
-                          name: user.name,
-                          location: user.location,
-                          isAvailable: value,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    StreamBuilder<WalkRequest?>(
-                      stream: _requestService.watchWalkerActiveJob(user.uid),
-                      builder: (context, snapshot) {
-                        final activeJob = snapshot.data;
-                        if (activeJob == null) {
-                          return const SizedBox.shrink();
-                        }
-                        return _ActiveJobCard(request: activeJob);
-                      },
-                    ),
-                    const SizedBox(height: 22),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Booking Requests',
-                              style: textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: darkText,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            StreamBuilder<List<WalkRequest>>(
-                              stream: _requestService.watchNearbyRequests(walkerId: user.uid),
-                              builder: (context, snapshot) {
-                                final count = (snapshot.data ?? const <WalkRequest>[]).length;
-                                if (count == 0) {
-                                  return const SizedBox.shrink();
-                                }
-                                return Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.error,
-                                    borderRadius: BorderRadius.circular(99),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    count > 99 ? '99+' : '$count',
-                                    style: textTheme.labelSmall?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        TextButton(
-                          onPressed: () => _showActionFeedback('Refreshing...'),
-                          style: TextButton.styleFrom(foregroundColor: AppColors.mintDeep),
-                          child: Text(
-                            'View all',
-                            style: textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    StreamBuilder<List<WalkRequest>>(
-                      stream: _requestService.watchNearbyRequests(walkerId: user.uid),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(40),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Error loading requests',
-                                    style: TextStyle(color: accent, fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Error: ${snapshot.error}',
-                                    style: TextStyle(color: mutedText, fontSize: 12),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-                        final requests = snapshot.data ?? [];
-                        if (requests.isEmpty) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(40),
-                              child: Text('No new requests found.', style: TextStyle(color: mutedText)),
-                            ),
-                          );
-                        }
-
-                        return Column(
-                          children: [
-                            _IncomingRequestBanner(count: requests.length),
-                            const SizedBox(height: 10),
-                            ...requests.map((request) => Padding(
-                              padding: const EdgeInsets.only(bottom: 14),
-                              child: _RequestCard(
-                                request: request,
-                                accent: accent,
-                                textTheme: textTheme,
-                                onViewBrief: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => BookingDetailScreen(requestId: request.id)),
-                                  );
-                                },
-                                onAccept: () async {
-                                  final accepted = await _requestService.updateRequestStatus(
-                                    request.id,
-                                    'accepted',
-                                    walkerId: user.uid,
-                                    walkerName: user.name,
-                                  );
-                                  if (!context.mounted) return;
-                                  if (accepted) {
-                                    _showActionFeedback('Accepted ${request.petName}\'s walk!');
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => BookingDetailScreen(requestId: request.id)),
-                                    );
-                                  } else {
-                                    _showActionFeedback('This request was already taken or expired.');
-                                  }
-                                },
-                                onReject: () async {
-                                  await _requestService.updateRequestStatus(
-                                    request.id,
-                                    'rejected',
-                                    walkerId: user.uid,
-                                    walkerName: user.name,
-                                  );
-                                  _showActionFeedback('Request removed from your queue.');
-                                },
-                              ),
-                            )),
-                          ],
-                        );
-                      }
-                    ),
-                  ],
-                ),
-              ),
+              child: _buildTabContent(_selectedBottomNavIndex, user, auth, textTheme, accent, darkText, mutedText),
             ),
             _BottomNavigation(
               selectedIndex: _selectedBottomNavIndex,
               accent: accent,
               textTheme: textTheme,
               onTap: (index) {
-                if (index == 2) {
-                  _openProfile();
-                  return;
-                }
                 setState(() => _selectedBottomNavIndex = index);
               },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTabContent(int index, UserModel user, AuthProvider auth, TextTheme textTheme, Color accent, Color darkText, Color mutedText) {
+    switch (index) {
+      case 0:
+        return _buildHomeTab(user, auth, textTheme, accent, darkText, mutedText);
+      case 1:
+        return const BookingsHistoryScreen();
+      case 2:
+        return const MessagesConversationScreen();
+      case 3:
+        return const ProfileScreen();
+      default:
+        return _buildHomeTab(user, auth, textTheme, accent, darkText, mutedText);
+    }
+  }
+
+  Widget _buildHomeTab(UserModel user, AuthProvider auth, TextTheme textTheme, Color accent, Color darkText, Color mutedText) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _DashboardHeader(
+            accent: accent,
+            textTheme: textTheme,
+            user: user,
+            onLogoutPressed: _logout,
+            onProfileTap: _openProfile,
+          ),
+          const SizedBox(height: 22),
+          Text(
+            'Hi ${user.name.split(' ').first},\nManage your walks',
+            style: textTheme.headlineMedium?.copyWith(
+              color: darkText,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.7,
+              height: 1.18,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Accept requests faster and keep your daily schedule clean.',
+            style: textTheme.bodyMedium?.copyWith(
+              color: mutedText,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 18),
+          _SearchAndFilterBar(
+            accent: accent,
+            textTheme: textTheme,
+          ),
+          const SizedBox(height: 16),
+          _StatsRow(
+            accent: accent,
+            textTheme: textTheme,
+            userId: user.uid,
+          ),
+          const SizedBox(height: 18),
+          _AvailabilityCard(
+            accent: accent,
+            textTheme: textTheme,
+            isAvailableNow: user.isAvailable,
+            onChanged: (value) async {
+              await auth.updateProfile(
+                name: user.name,
+                location: user.location,
+                isAvailable: value,
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          StreamBuilder<WalkRequest?>(
+            stream: _requestService.watchWalkerActiveJob(user.uid),
+            builder: (context, snapshot) {
+              final activeJob = snapshot.data;
+              if (activeJob == null) {
+                return const SizedBox.shrink();
+              }
+              return _ActiveJobCard(request: activeJob);
+            },
+          ),
+          const SizedBox(height: 22),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'Booking Requests',
+                    style: textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: darkText,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  StreamBuilder<List<WalkRequest>>(
+                    stream: _requestService.watchNearbyRequests(walkerId: user.uid),
+                    builder: (context, snapshot) {
+                      final count = (snapshot.data ?? const <WalkRequest>[]).length;
+                      if (count == 0) {
+                        return const SizedBox.shrink();
+                      }
+                      return Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          count > 99 ? '99+' : '$count',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              TextButton(
+                onPressed: () => _showActionFeedback('Refreshing...'),
+                style: TextButton.styleFrom(foregroundColor: AppColors.mintDeep),
+                child: Text(
+                  'View all',
+                  style: textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          StreamBuilder<List<WalkRequest>>(
+            stream: _requestService.watchNearbyRequests(walkerId: user.uid),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error loading requests',
+                          style: TextStyle(color: accent, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Error: ${snapshot.error}',
+                          style: TextStyle(color: mutedText, fontSize: 12),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              final requests = snapshot.data ?? [];
+              if (requests.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Text('No new requests found.', style: TextStyle(color: mutedText)),
+                  ),
+                );
+              }
+
+              return Column(
+                children: [
+                  _IncomingRequestBanner(count: requests.length),
+                  const SizedBox(height: 10),
+                  ...requests.map((request) => Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: _RequestCard(
+                          request: request,
+                          accent: accent,
+                          textTheme: textTheme,
+                          onViewBrief: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => BookingDetailScreen(requestId: request.id)),
+                            );
+                          },
+                          onAccept: () async {
+                            final accepted = await _requestService.updateRequestStatus(
+                              request.id,
+                              'accepted',
+                              walkerId: user.uid,
+                              walkerName: user.name,
+                            );
+                            if (!context.mounted) return;
+                            if (accepted) {
+                              _showActionFeedback('Accepted ${request.petName}\'s walk!');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => BookingDetailScreen(requestId: request.id)),
+                              );
+                            } else {
+                              _showActionFeedback('This request was already taken or expired.');
+                            }
+                          },
+                          onReject: () async {
+                            await _requestService.updateRequestStatus(
+                              request.id,
+                              'rejected',
+                              walkerId: user.uid,
+                              walkerName: user.name,
+                            );
+                            _showActionFeedback('Request removed from your queue.');
+                          },
+                        ),
+                      )),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -433,36 +451,47 @@ class _SearchAndFilterBar extends StatelessWidget {
 class _StatsRow extends StatelessWidget {
   final Color accent;
   final TextTheme textTheme;
+  final String userId;
 
   const _StatsRow({
     required this.accent,
     required this.textTheme,
+    required this.userId,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            title: 'Earnings Today',
-            value: '\$0.00',
-            icon: Icons.payments_rounded,
-            textTheme: textTheme,
-            accent: accent,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            title: 'Jobs Done',
-            value: '0',
-            icon: Icons.directions_walk_rounded,
-            textTheme: textTheme,
-            accent: accent,
-          ),
-        ),
-      ],
+    return StreamBuilder<List<WalkRequest>>(
+      stream: RequestService().watchWalkerCompletedJobsToday(userId),
+      builder: (context, snapshot) {
+        final jobs = snapshot.data ?? [];
+        final earnings = jobs.fold(0.0, (sum, item) => sum + item.amount);
+        final count = jobs.length;
+
+        return Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                title: 'Earnings Today',
+                value: '\$${earnings.toStringAsFixed(2)}',
+                icon: Icons.payments_rounded,
+                textTheme: textTheme,
+                accent: accent,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatCard(
+                title: 'Jobs Done',
+                value: '$count',
+                icon: Icons.directions_walk_rounded,
+                textTheme: textTheme,
+                accent: accent,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -841,7 +870,8 @@ class _BottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     const items = [
       (Icons.home_rounded, 'Home'),
-      (Icons.calendar_today_rounded, 'Schedule'),
+      (Icons.calendar_month_rounded, 'Walk History'),
+      (Icons.mail_outline_rounded, 'Messages'),
       (Icons.person_rounded, 'Profile'),
     ];
 

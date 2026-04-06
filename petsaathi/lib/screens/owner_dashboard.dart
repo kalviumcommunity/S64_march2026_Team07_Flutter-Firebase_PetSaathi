@@ -235,7 +235,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
               }
 
               return SizedBox(
-                height: 250,
+                height: 280,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: pets.length,
@@ -249,12 +249,13 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
             },
           ),
           const SizedBox(height: 24),
-          const AppSectionTitle(title: 'Recent Activity'),
+          const AppSectionTitle(title: 'Recent Bookings'),
           const SizedBox(height: 10),
-          StreamBuilder<List<ActivityLog>>(
-            stream: _activityService.watchUserActivity(user.uid),
+          StreamBuilder<List<WalkRequest>>(
+            stream: _requestService.watchOwnerRequests(user.uid),
             builder: (context, snapshot) {
-              final activities = snapshot.data ?? const [];
+              final allRequests = snapshot.data ?? [];
+              final recentWalks = allRequests.where((r) => r.status == 'completed').take(3).toList();
 
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SizedBox(
@@ -263,10 +264,10 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                 );
               }
 
-              if (activities.isEmpty) {
+              if (recentWalks.isEmpty) {
                 return _EmptyStateCard(
-                  title: 'No activity yet',
-                  subtitle: 'Once you request or complete bookings, updates will appear here.',
+                  title: 'No recent walks',
+                  subtitle: 'Completed walk bookings will appear here for your review.',
                   actionLabel: 'Find a Walker',
                   onTap: _openWalkerDiscovery,
                 );
@@ -281,7 +282,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 child: Column(
-                  children: activities.map((event) => _ActivityTile(event: event)).toList(growable: false),
+                  children: recentWalks.map((walk) => _RecentWalkTile(request: walk)).toList(growable: false),
                 ),
               );
             },
@@ -318,7 +319,7 @@ class _PetCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               child: SizedBox(
                 width: double.infinity,
-                height: 145,
+                height: 155,
                 child: pet.photoUrl.isEmpty
                     ? Container(
                         color: AppColors.accentSoft.withValues(alpha: 0.65),
@@ -344,14 +345,14 @@ class _PetCard extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 4),
-            Text(
-              pet.statusText,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textMuted,
-                  ),
-            ),
+              Text(
+                pet.statusText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: AppColors.textMuted,
+                    ),
+              ),
           ],
         ),
       ),
@@ -359,36 +360,10 @@ class _PetCard extends StatelessWidget {
   }
 }
 
-class _ActivityTile extends StatelessWidget {
-  final ActivityLog event;
+class _RecentWalkTile extends StatelessWidget {
+  final WalkRequest request;
 
-  const _ActivityTile({required this.event});
-
-  IconData get icon {
-    switch (event.iconType) {
-      case 'done':
-        return Icons.task_alt_rounded;
-      case 'schedule':
-        return Icons.calendar_month_rounded;
-      case 'cancel':
-        return Icons.cancel_rounded;
-      default:
-        return Icons.pending_actions_rounded;
-    }
-  }
-
-  Color get iconColor {
-    switch (event.iconType) {
-      case 'done':
-        return AppColors.success;
-      case 'schedule':
-        return AppColors.info;
-      case 'cancel':
-        return AppColors.error;
-      default:
-        return AppColors.warning;
-    }
-  }
+  const _RecentWalkTile({required this.request});
 
   @override
   Widget build(BuildContext context) {
@@ -400,10 +375,10 @@ class _ActivityTile extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.12),
+              color: AppColors.success.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(25),
             ),
-            child: Icon(icon, color: iconColor),
+            child: const Icon(Icons.check_circle_rounded, color: AppColors.success),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -411,12 +386,12 @@ class _ActivityTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  event.title,
+                  'Walk for ${request.petName}',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  event.subtitle,
+                  'Completed by ${request.walkerName ?? 'Walker'}',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textMuted),
                 ),
               ],

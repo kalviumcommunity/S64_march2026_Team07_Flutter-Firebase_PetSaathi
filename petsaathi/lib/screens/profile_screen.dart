@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../services/pet_service.dart';
+import '../models/pet_model.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_widgets.dart';
@@ -249,6 +251,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ],
+              if (!isWalker) ...[
+                const SizedBox(height: 24),
+                _FieldLabel(text: 'Active Pets'),
+                StreamBuilder<List<PetModel>>(
+                  stream: PetService().watchOwnerPets(user.uid),
+                  builder: (context, snapshot) {
+                    final pets = snapshot.data ?? [];
+                    if (pets.isEmpty) {
+                      return Text('No active pets found.', style: TextStyle(color: AppColors.textMuted));
+                    }
+                    return Column(
+                      children: pets.map((pet) => _PetListTile(pet: pet)).toList(),
+                    );
+                  },
+                ),
+              ],
               const SizedBox(height: 18),
               GradientActionButton(
                 label: _saving ? 'Saving...' : 'Save profile',
@@ -269,6 +287,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PetListTile extends StatelessWidget {
+  final PetModel pet;
+
+  const _PetListTile({required this.pet});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundImage: pet.photoUrl.isNotEmpty ? NetworkImage(pet.photoUrl) : null,
+            child: pet.photoUrl.isEmpty ? const Icon(Icons.pets_rounded, size: 20, color: AppColors.mintDeep) : null,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(pet.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(pet.breed, style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+        ],
       ),
     );
   }

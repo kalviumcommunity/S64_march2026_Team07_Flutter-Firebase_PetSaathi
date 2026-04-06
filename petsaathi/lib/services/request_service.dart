@@ -228,4 +228,22 @@ class RequestService {
       return active.first;
     });
   }
+
+  Stream<List<WalkRequest>> watchWalkerCompletedJobsToday(String walkerId) {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    return _firestore
+        .collection('requests')
+        .where('walkerId', isEqualTo: walkerId)
+        .where('status', isEqualTo: 'completed')
+        .snapshots()
+        .map((snap) {
+          final requests = snap.docs.map((doc) => WalkRequest.fromMap(doc.id, doc.data())).toList();
+          return requests.where((r) => 
+            r.updatedAt.year == todayStart.year && 
+            r.updatedAt.month == todayStart.month && 
+            r.updatedAt.day == todayStart.day
+          ).toList();
+        });
+  }
 }

@@ -73,7 +73,9 @@ class _RequestList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<WalkRequest>>(
-      stream: _requestService.watchOwnerRequests(userId),
+      stream: context.read<AuthProvider>().user?.role == 'walker'
+          ? _requestService.watchWalkerJobs(userId)
+          : _requestService.watchOwnerRequests(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
