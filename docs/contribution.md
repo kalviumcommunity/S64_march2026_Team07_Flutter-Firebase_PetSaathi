@@ -74,6 +74,23 @@ saanvi- 3.40
 
 **friday 27 march**
 
-hardik - 3.38
-ishita - 3.39
-saanvi- 3.40
+hardik - 3.41
+ishita - 3.42
+saanvi- 3.43
+
+**monday 6 april**
+
+hardik - 3.44
+ishita - 3.45
+saanvi- 3.46
+
+**tuesday 7 april**
+
+hardik - 3.47
+ishita - 3.48
+saanvi- 3.49
+
+**wednesday 8 april**
+
+hardik - 3.50
+saanvi- 3.51
