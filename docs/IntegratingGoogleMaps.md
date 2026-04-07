@@ -1,48 +1,196 @@
-# Assignment: Integrating Google Maps SDK for Flutter and Displaying Maps
+3. Getting Google Maps API Key
 
-## Overview
-Location-based applications play a major role in modern software systems. Apps like cab booking, food delivery, navigation, and live tracking depend on interactive maps to provide real-time location updates and improve user experience.
+To use Google Maps, an API key is required.
 
-Flutter provides an easy way to integrate **Google Maps SDK** using the `google_maps_flutter` package. This allows developers to embed interactive maps directly inside their apps with support for:
+Steps to Generate API Key
+Go to Google Cloud Console
+Navigate to APIs & Services
+Open Credentials
+Click Create Credentials
+Select API Key
+Enable Required APIs
 
-- Zooming and panning
-- Live location tracking
-- Markers and info windows
-- Routes and navigation features
-- Custom overlays
+Make sure the following APIs are enabled:
 
-This assignment focuses on integrating Google Maps into a Flutter application and displaying an interactive map.
+Maps SDK for Android
+Maps SDK for iOS
+Geocoding API (optional)
+Places API (optional)
 
----
+Copy the generated API key for later use.
 
-## Objective
-The objective of this assignment is to learn how to:
+Example:
 
-- Integrate Google Maps SDK in Flutter
-- Configure Android and iOS platforms
-- Use Google Cloud API keys
-- Display a functional map widget
-- Enable user location access
-- Add custom markers
-- Troubleshoot common issues
+AIzaSyXXXXXX-XXXXXX-XXXXXX
+4. Platform Configuration
+Android Configuration
 
-By the end of this assignment, the Flutter app should display a fully working interactive Google Map.
+Open the following file:
 
----
+android/app/src/main/AndroidManifest.xml
 
-## 1. Importance of Google Maps Integration
-Google Maps integration is one of the most important features in location-based applications.
+Add the API key inside the <application> tag:
 
-### Key Use Cases
-- **Cab booking apps** like Uber and Ola
-- **Delivery tracking apps** like Swiggy and Zomato
-- **Navigation apps** like Google Maps
-- **Location-based dashboards**
-- **Real-time GPS tracking systems**
+<meta-data
+    android:name="com.google.android.geo.API_KEY"
+    android:value="YOUR_API_KEY_HERE"/>
+Add Location Permission
 
-### Why It Is Important
-- Provides accurate geographical data
-- Enables route and navigation services
-- Helps in displaying nearby locations
-- Supports real-time user tracking
-- Improves overall user experience
+If user location is needed, add:
+
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+This permission allows access to GPS location.
+
+iOS Configuration
+
+For iOS, open:
+
+ios/Runner/AppDelegate.swift
+
+Add:
+
+GMSServices.provideAPIKey("YOUR_API_KEY_HERE")
+
+Next, open:
+
+ios/Runner/Info.plist
+
+Add location permission description:
+
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>This app requires location access to display maps.</string>
+
+This is mandatory for iOS.
+
+5. Displaying Google Map in Flutter
+
+Below is the minimal code required to display a map.
+
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+class MapScreen extends StatelessWidget {
+  const MapScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Google Map"),
+      ),
+      body: const GoogleMap(
+        initialCameraPosition: CameraPosition(
+          target: LatLng(37.7749, -122.4194),
+          zoom: 12,
+        ),
+      ),
+    );
+  }
+}
+Explanation of Code
+GoogleMap Widget
+
+This widget is used to display the map.
+
+GoogleMap()
+initialCameraPosition
+
+This sets the starting view of the map.
+
+initialCameraPosition: CameraPosition(
+target
+
+This defines the latitude and longitude.
+
+target: LatLng(37.7749, -122.4194)
+
+This points to San Francisco.
+
+zoom
+
+Controls how close the map appears.
+
+zoom: 12
+
+Higher value = closer zoom.
+
+6. Enabling User Location
+
+To show current user location:
+
+GoogleMap(
+  initialCameraPosition: const CameraPosition(
+    target: LatLng(0, 0),
+    zoom: 2,
+  ),
+  myLocationEnabled: true,
+  myLocationButtonEnabled: true,
+)
+Explanation
+myLocationEnabled
+
+Displays the blue dot for current location.
+
+myLocationEnabled: true
+myLocationButtonEnabled
+
+Shows the location button on the map.
+
+myLocationButtonEnabled: true
+
+When clicked, it moves the camera to the user’s location.
+
+7. Adding a Marker
+
+Markers help point to specific locations.
+
+Example:
+
+GoogleMap(
+  initialCameraPosition: const CameraPosition(
+    target: LatLng(28.6139, 77.2090),
+    zoom: 12,
+  ),
+  markers: {
+    const Marker(
+      markerId: MarkerId("delhi"),
+      position: LatLng(28.6139, 77.2090),
+      infoWindow: InfoWindow(
+        title: "Marker in Delhi",
+      ),
+    ),
+  },
+)
+Explanation of Marker
+markerId
+
+Unique ID for each marker.
+
+markerId: MarkerId("delhi")
+position
+
+Location where marker appears.
+
+position: LatLng(28.6139, 77.2090)
+
+This represents New Delhi.
+
+infoWindow
+
+Popup text shown when user taps the marker.
+
+infoWindow: InfoWindow(title: "Marker in Delhi")
+8. Features Supported by Google Maps
+
+Google Maps Flutter package supports:
+
+Markers
+Circles
+Polygons
+Polylines
+Heatmaps
+Camera movement
+Custom map styles
+
+These are useful in advanced projects.
